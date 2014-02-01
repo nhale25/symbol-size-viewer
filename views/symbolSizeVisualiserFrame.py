@@ -6,6 +6,7 @@ from guiHelpers import Event
 from objectList import ObjectList
 from prefsDialog import PrefsDialog
 from totalFlashUsage import TotalFlashUsage
+from controls.colorKey import ColorKey
 
 class SymbolSizeVisualiserFrame(wx.Frame):
 	def __init__(self, prefs, *args, **kwds):
@@ -38,12 +39,14 @@ class SymbolSizeVisualiserFrame(wx.Frame):
 		self._statusBar = self.CreateStatusBar(2)
 		
 		panel = wx.Panel(self)
+		self.colorKey = ColorKey(panel)
 		self.totalFlash = TotalFlashUsage(panel)
 		self.objectList = ObjectList(panel)
 		
 		vBox = wx.BoxSizer(wx.VERTICAL)
-		vBox.Add(self.totalFlash, 0, wx.EXPAND | wx.ALL, 5)
-		vBox.Add(self.objectList, 1, wx.EXPAND | wx.ALL, 5)
+		vBox.Add(self.colorKey, 0, wx.ALL | wx.ALIGN_RIGHT, 4)
+		vBox.Add(self.totalFlash, 0, wx.EXPAND | wx.ALL, 4)
+		vBox.Add(self.objectList, 1, wx.EXPAND | wx.ALL, 4)
 		panel.SetSizer(vBox)
 	
 	def _onClose(self, event):

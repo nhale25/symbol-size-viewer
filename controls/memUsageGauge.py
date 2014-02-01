@@ -1,6 +1,7 @@
 
 import wx
 from wx.lib.agw.pygauge import PyGauge
+from controls import defaultColors
 
 class StackedPyGaugeWithText(PyGauge):
 	def __init__(self, barNames, *args, **kwargs):
@@ -56,22 +57,17 @@ class StackedPyGaugeWithText(PyGauge):
 			dc.DrawText(self._text, textXPos, textYPos)
 
 class MemUsageGauge(StackedPyGaugeWithText):
-	COL_CODE = "#729fcf"
-	COL_RODATA = "#cf72cd"
-	COL_INITDATA = "#72cf73"
-	COL_FULL = "#cc0000"
-	
 	def __init__(self, *args, **kwargs):
 		kwargs["style"] = kwargs.get("style", 0) | wx.SUNKEN_BORDER
 		barNames = ["text", "roData", "initData"]
 		StackedPyGaugeWithText.__init__(self, barNames, *args, **kwargs)
 		
 		self._colors = {
-			"text": self.COL_CODE,
-			"roData": self.COL_RODATA,
-			"initData": self.COL_INITDATA,
+			"text": defaultColors["code"],
+			"roData": defaultColors["roData"],
+			"initData": defaultColors["initData"],
 			}
-		self._fullColor = self.COL_FULL
+		self._fullColor = defaultColors["flashFull"]
 		
 		self._values = {
 			"text": 0,
@@ -83,19 +79,19 @@ class MemUsageGauge(StackedPyGaugeWithText):
 	def SetCapacity(self, capacity):
 		self._capacity = capacity
 		self.SetRange(capacity)
-		self._redraw()
+		self._updateBars()
 	
 	def SetSizes(self, code=0, readOnly=0, initialized=0):
 		self._values["text"] = code
 		self._values["roData"] = readOnly
 		self._values["initData"] = initialized
-		self._redraw()
+		self._updateBars()
 	
 	def SetText(self, text):
 		StackedPyGaugeWithText.SetText(self, text)
 		self.Refresh()
 	
-	def _redraw(self):
+	def _updateBars(self):
 		totalSize = sum(self._values.values())
 		if totalSize > self._capacity:
 			self.SetBarColor(self._fullColor)
