@@ -6,7 +6,7 @@ from guiHelpers import Event
 from objectList import ObjectList
 from prefsDialog import PrefsDialog
 from totalFlashUsage import TotalFlashUsage
-from controls.colorKey import ColorKey
+from colorKey import ColorKey
 
 class SymbolSizeVisualiserFrame(wx.Frame):
 	def __init__(self, prefs, *args, **kwds):

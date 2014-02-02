@@ -3,7 +3,7 @@ import locale
 import os.path
 import wx
 
-from views.symbolSizeVisualiserFrame import SymbolSizeVisualiserFrame
+from controls.symbolSizeVisualiserFrame import SymbolSizeVisualiserFrame
 from models.objectFileModel import ObjectFileModel
 from models.prefsModel import PrefsModel
 from guiHelpers import Event

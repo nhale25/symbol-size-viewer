@@ -1,7 +1,7 @@
 
 import wx
 import wx.lib.agw.ultimatelistctrl as ULC
-from controls.memUsageGauge import MemUsageGauge
+from memUsageGauge import MemUsageGauge
 from guiHelpers import Event
 
 class ObjectList(wx.Panel):
