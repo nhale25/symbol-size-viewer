@@ -7,8 +7,8 @@ class PrefsDialog(wx.Dialog):
 		kwds["title"] = "Preferences"
 		wx.Dialog.__init__(self, None, *args, **kwds)
 		
-		self.txt_nmExeLoc = wx.TextCtrl(self)
-		self.txt_sizeExeLoc = wx.TextCtrl(self)
+		self.txt_nmExeLoc = wx.TextCtrl(self, size=(200, -1))
+		self.txt_sizeExeLoc = wx.TextCtrl(self, size=(200, -1))
 		self.txt_flashSize = wx.TextCtrl(self)
 		self.chk_autoUpdate = wx.CheckBox(self)
 		
