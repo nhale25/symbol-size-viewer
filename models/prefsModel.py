@@ -5,57 +5,103 @@ import os
 import os.path
 import errno
 
+class PrefsHelpers:
+	
+	@staticmethod
+	def stringToPath(string):
+		return string #FIXME: do something about backslashes on windows, maybe?
+	
+	@staticmethod
+	def sizeToInt(size):
+		if size.lower().startswith("0x"):
+			base = 16
+		else:
+			base = 10
+			
+		try:
+			return int(size, base)
+		except ValueError:
+			return 0
+	
+	@staticmethod
+	def stringToBool(string):
+		return string.lower() in ["true", "t", "yes", "y", "1"]
+
+class Preference(object):
+	def __init__(self, default, formatter=str):
+		self._value = default
+		self._default = default
+		self._formatter = formatter
+	
+	def set(self, value):
+		self._value = str(value)
+	
+	def getAsString(self):
+		return self._value
+	
+	def get(self):
+		return self._formatter(self._value)
+
 class PrefsModel:
 	def __init__(self, fileName=None):
-		self.nmExeLocation = ""
-		self.sizeExeLocation = ""
-		self.numberFormat = "decimal"
-		self.totalFlashSizeStr = ""
-		self.lastOpenedDirectory = ""
-		self.watchFileForChanges = True
+		self._prefs = {
+			"nmExeLocation": 		Preference("", PrefsHelpers.stringToPath),
+			"sizeExeLocation":		Preference("", PrefsHelpers.stringToPath),
+			"numberFormat": 		Preference("decimal"),
+			"totalFlashSize": 		Preference("0", PrefsHelpers.sizeToInt),
+			"lastOpenedDirectory":	Preference("", PrefsHelpers.stringToPath),
+			"watchFileForChanges":	Preference("true", PrefsHelpers.stringToBool),
+			"showColorKey": 		Preference("true", PrefsHelpers.stringToBool),
+			}
 		
 		self.prefsChangedEvent = Event()
 		
 		if fileName is not None:
 			self.loadFromFile(fileName)
 	
-	@property
-	def totalFlashSize(self):
-		if self.totalFlashSizeStr.lower().startswith("0x"):
-			base = 16
-		else:
-			base = 10
-			
-		try:
-			return int(self.totalFlashSizeStr, base)
-		except ValueError:
-			return 0
+	def __getitem__(self, key):
+		return self._prefs[key]
+	
+	def __setitem__(self, key, value):
+		self._prefs[key].set(value)
+	
+	def get(self, name):
+		return self._prefs[name]
+	
+	def getAll(self):
+		return self._prefs
+	
+	def set(self, name, value):
+		self.setMany({name: value})
+		
+	def setMany(self, dictionary):
+		for name, value in dictionary.items():
+			self._prefs[name].set(value)
+		
+		changed = dict([(name, self._prefs[name]) for name in dictionary.keys()])
+		self.prefsChangedEvent(changed)
 	
 	def loadFromFile(self, fileName):
+		config = ConfigParser()
+		
 		try:
-			config = ConfigParser()
 			with open(fileName) as f:
 				config.readfp(f)
 			
-			self.nmExeLocation = config.get("DEFAULT", "nmExeLocation")
-			self.sizeExeLocation = config.get("DEFAULT", "sizeExeLocation")
-			self.numberFormat = config.get("DEFAULT", "numberFormat")
-			self.totalFlashSizeStr = config.get("DEFAULT", "totalFlashSizeStr")
-			self.lastOpenedDirectory = config.get("DEFAULT", "lastOpenedDirectory")
-			self.watchFileForChanges = config.getboolean("DEFAULT", "watchFileForChanges")
-			self.prefsChangedEvent(self)
+			for name, pref in self._prefs.items():
+				value = config.get("DEFAULT", name)
+				pref.set(value)
+				
+			self.prefsChangedEvent(self._prefs)
 			
 		except Exception as e:
 			print e
 	
 	def saveToFile(self, fileName):
 		config = ConfigParser()
-		config.set("DEFAULT", "nmExeLocation", self.nmExeLocation)
-		config.set("DEFAULT", "sizeExeLocation", self.sizeExeLocation)
-		config.set("DEFAULT", "numberFormat", self.numberFormat)
-		config.set("DEFAULT", "totalFlashSizeStr", self.totalFlashSizeStr)
-		config.set("DEFAULT", "lastOpenedDirectory", self.lastOpenedDirectory)
-		config.set("DEFAULT", "watchFileForChanges", self.watchFileForChanges)
+		for name, pref in self._prefs.items():
+			value = pref.getAsString()
+			config.set("DEFAULT", name, value)
 		
 		try:
 			os.makedirs(os.path.dirname(fileName))

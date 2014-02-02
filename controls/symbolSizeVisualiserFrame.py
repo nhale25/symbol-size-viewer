@@ -4,25 +4,25 @@ import wx
 
 from guiHelpers import Event
 from objectList import ObjectList
-from prefsDialog import PrefsDialog
 from totalFlashUsage import TotalFlashUsage
 from colorKey import ColorKey
 
 class SymbolSizeVisualiserFrame(wx.Frame):
-	def __init__(self, prefs, *args, **kwds):
+	def __init__(self, *args, **kwds):
 		kwds["title"] = wx.GetApp().GetAppName()
 		wx.Frame.__init__(self, None, *args, **kwds)
-		self._prefs = prefs
 		self.openFileEvent = Event()
 		self.prefsChangedEvent = Event()
+		self.openPrefsDialogEvent = Event()
 		self.windowClosingEvent = Event()
 		
-		self.initUi()
-
-	def initUi(self):
-		self.Bind(wx.EVT_CLOSE, self._onClose)
-		
+		self._initUi()
+	
+	def _initMenu(self):
 		menuBar = wx.MenuBar()
+		self.SetMenuBar(menuBar)
+		
+		#file menu
 		fileMenu = wx.Menu()
 		menuItem_Open = fileMenu.Append(wx.ID_OPEN)
 		self.Bind(wx.EVT_MENU, self._onOpen, menuItem_Open)
@@ -30,12 +30,28 @@ class SymbolSizeVisualiserFrame(wx.Frame):
 		menuItem_Exit = fileMenu.Append(wx.ID_EXIT)
 		self.Bind(wx.EVT_MENU, self._onClose, menuItem_Exit)
 		menuBar.Append(fileMenu, "File")
+		
+		#view menu
+		viewMenu = wx.Menu()
+		numberFormatMenu = wx.Menu()
+		self.menuItem_decimal = numberFormatMenu.Append(wx.ID_ANY, "Decimal", kind=wx.ITEM_RADIO)
+		self.menuItem_hex = numberFormatMenu.Append(wx.ID_ANY, "Hex", kind=wx.ITEM_RADIO)
+		self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"numberFormat":"decimal"}), self.menuItem_decimal)
+		self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"numberFormat":"hex"}), self.menuItem_hex)
+		viewMenu.AppendMenu(wx.ID_ANY, "Number format", numberFormatMenu)
+		self.menuItem_showKey = viewMenu.Append(wx.ID_ANY, "Show colour key", kind=wx.ITEM_CHECK)
+		self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"showColorKey":self.menuItem_showKey.IsChecked()}), self.menuItem_showKey)
+		menuBar.Append(viewMenu, "View")
+		
+		#preferences menu
 		prefsMenu = wx.Menu()
 		menuItem_Prefs = prefsMenu.Append(wx.ID_PREFERENCES)
-		self.Bind(wx.EVT_MENU, self._onShowPrefs, menuItem_Prefs)
+		self.Bind(wx.EVT_MENU, lambda e: self.openPrefsDialogEvent(), menuItem_Prefs)
 		menuBar.Append(prefsMenu, "Preferences")
-		self.SetMenuBar(menuBar)
 		
+	def _initUi(self):
+		self._initMenu()
+		self.Bind(wx.EVT_CLOSE, self._onClose)
 		self._statusBar = self.CreateStatusBar(2)
 		
 		panel = wx.Panel(self)
@@ -52,19 +68,6 @@ class SymbolSizeVisualiserFrame(wx.Frame):
 	def _onClose(self, event):
 		self.Destroy()
 		self.windowClosingEvent()
-	
-	def _onShowPrefs(self, event):
-		prefsDialog = PrefsDialog(self._prefs)
-		if prefsDialog.ShowModal() == wx.ID_OK:
-			newPrefs = {
-				"nmExeLocation": prefsDialog.txt_nmExeLoc.GetValue(),
-				"sizeExeLocation": prefsDialog.txt_sizeExeLoc.GetValue(),
-				"totalFlashSizeStr": prefsDialog.txt_flashSize.GetValue(),
-				"numberFormat": "decimal" if prefsDialog.rb_sizeDec.GetValue() else "hex",
-				"watchFileForChanges": prefsDialog.chk_autoUpdate.GetValue()
-				}
-			self.prefsChangedEvent(newPrefs)
-		prefsDialog.Destroy()
 	
 	def _onOpen(self, event):
 		openFileDialog = wx.FileDialog(self, "Open ELF file", self._lastOpenedDirectory, "",
@@ -88,8 +91,22 @@ class SymbolSizeVisualiserFrame(wx.Frame):
 		self.totalFlash.setNumberFormatter(formatter)
 		self.objectList.setNumberFormatter(formatter)
 	
+	def setNumberFormatProperty(self, value):
+		if value == "decimal":
+			self.menuItem_decimal.Check(True)
+		elif value == "hex":
+			self.menuItem_hex.Check(True)
+	
 	def setTotalFlashSize(self, size):
 		self.totalFlash.setTotalFlashSize(size)
 	
 	def setLastOpenedDirectory(self, dir):
 		self._lastOpenedDirectory = dir
+	
+	def showColorKey(self, show):
+		if show:
+			self.colorKey.Show()
+		else:
+			self.colorKey.Hide()
+		self.menuItem_showKey.Check(show)
+		self.colorKey.GetParent().Layout()

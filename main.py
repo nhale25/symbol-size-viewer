@@ -3,6 +3,7 @@ import locale
 import os.path
 import wx
 
+from controls.prefsDialog import PrefsDialog
 from controls.symbolSizeVisualiserFrame import SymbolSizeVisualiserFrame
 from models.objectFileModel import ObjectFileModel
 from models.prefsModel import PrefsModel
@@ -19,14 +20,15 @@ class FlashUsageAnalyserGui(object):
 		self._prefsFileLocation = os.path.join(paths.GetUserDataDir(), "config")
 		
 		self._prefs = PrefsModel()
-		self._prefs.prefsChangedEvent.addHandler(self._onPrefsChanged)
+		self._prefs.prefsChangedEvent.addHandler(self._onPrefsModelChanged)
 		
 		self._objectFile = ObjectFileModel()
 		self._objectFile.fileChangedEvent.addHandler(lambda x, y: wx.CallAfter(self._onObjectFileChanged, x, y))
 		
-		self._mainWindow = SymbolSizeVisualiserFrame(self._prefs)
+		self._mainWindow = SymbolSizeVisualiserFrame()
 		self._mainWindow.openFileEvent.addHandler(self._onOpenObjectFile)
-		self._mainWindow.prefsChangedEvent.addHandler(self._onPrefsDialogEdited)
+		self._mainWindow.prefsChangedEvent.addHandler(self._onPrefsChanged)
+		self._mainWindow.openPrefsDialogEvent.addHandler(self._onOpenPrefsDialog)
 		self._mainWindow.windowClosingEvent.addHandler(self._onAppClosing)
 		
 		self._prefs.loadFromFile(self._prefsFileLocation)
@@ -37,8 +39,7 @@ class FlashUsageAnalyserGui(object):
 		self._mainWindow.Show()
 	
 	def _onOpenObjectFile(self, path):
-		self._prefs.lastOpenedDirectory = os.path.dirname(path)
-		self._mainWindow.setLastOpenedDirectory(self._prefs.lastOpenedDirectory) # shouldn't really be doing this here
+		self._prefs.set("lastOpenedDirectory", os.path.dirname(path))
 		self._objectFile.setFile(path)
 	
 	def _onObjectFileChanged(self, objectFile, stillExists):
@@ -63,23 +64,33 @@ class FlashUsageAnalyserGui(object):
 			initDataSymbols = None
 			roDataSymbols = None
 		
-		print binUtilsParsers.NmParser.prettyPrintSymbolList(symbolInfo)
 		self._mainWindow.updateObjectFile(sizeInfo, codeSymbols, initDataSymbols, roDataSymbols, objectFile.path)
 	
-	def _onPrefsChanged(self, prefs):
-		formatter = self.numberFormatters.get(prefs.numberFormat, self.numberFormatters["decimal"])
-		self._mainWindow.setNumberFormatter(formatter)
-		self._mainWindow.setTotalFlashSize(prefs.totalFlashSize)
-		self._mainWindow.setLastOpenedDirectory(prefs.lastOpenedDirectory)
+	def _onPrefsModelChanged(self, prefs):
+		prefs = self._prefs
 		
-		self._objectFile.setNmExeLocation(prefs.nmExeLocation)
-		self._objectFile.setSizeExeLocation(prefs.sizeExeLocation)
-		self._objectFile.setWatchFileFileForChanges(self._prefs.watchFileForChanges)
+		formatValue = prefs["numberFormat"].get()
+		self._mainWindow.setNumberFormatProperty(formatValue)
+		formatter = self.numberFormatters.get(formatValue, self.numberFormatters["decimal"])
+		self._mainWindow.setNumberFormatter(formatter)
+		
+		self._mainWindow.setTotalFlashSize(prefs["totalFlashSize"].get())
+		self._mainWindow.setLastOpenedDirectory(prefs["lastOpenedDirectory"].get())
+		self._mainWindow.showColorKey(prefs["showColorKey"].get())
+		
+		self._objectFile.setNmExeLocation(prefs["nmExeLocation"].get())
+		self._objectFile.setSizeExeLocation(prefs["sizeExeLocation"].get())
+		self._objectFile.setWatchFileFileForChanges(prefs["watchFileForChanges"].get())
 	
-	def _onPrefsDialogEdited(self, prefs):
-		for k, v in prefs.items():
-			setattr(self._prefs, k, v)
-		self._prefs.prefsChangedEvent(self._prefs)
+	def _onOpenPrefsDialog(self):
+		prefsDialog = PrefsDialog(self._prefs.getAll())
+		if prefsDialog.ShowModal() == wx.ID_OK:
+			self._onPrefsChanged(prefsDialog.getPreferences())
+		prefsDialog.Destroy()
+	
+	def _onPrefsChanged(self, changed):
+		for name, value in changed.items():
+			self._prefs.set(name, value)
 	
 	def _onAppClosing(self):
 		self._prefs.saveToFile(self._prefsFileLocation)
