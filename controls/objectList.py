@@ -40,8 +40,12 @@ class ObjectList(wx.Panel):
 		self._listCtrl.SetItemWindow(pos, col=2, wnd=gauge, expand=True)
 	
 	def updateInfo(self, codeSymbols, initDataSymbols, roDataSymbols):
-		for pos in range(self._listCtrl.GetItemCount()):
-			self._listCtrl.DeleteItemWindow(pos, 2)
+		#workaround for bug in certain versions of UltimateListCtrl when calling DeleteAllItems()
+		for item in self._listCtrl._mainWin._itemWithWindow[:]:
+			if item.GetWindow():
+				self._listCtrl._mainWin.DeleteItemWindow(item)
+		#end of workaround
+		
 		self._listCtrl.DeleteAllItems()
 		
 		if codeSymbols is not None and initDataSymbols is not None and roDataSymbols is not None:
