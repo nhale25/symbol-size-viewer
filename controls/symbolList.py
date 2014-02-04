@@ -6,7 +6,7 @@ import wx.lib.mixins.listctrl as listmix
 from memUsageGauge import MemUsageGauge
 from guiHelpers import Event
 
-class ObjectList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
+class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
 	def __init__(self, *args, **kwargs):
 		kwargs["agwStyle"] = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.LC_SINGLE_SEL | ULC.ULC_NO_HIGHLIGHT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT
 		ULC.UltimateListCtrl.__init__(self, *args, **kwargs)

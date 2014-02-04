@@ -4,7 +4,7 @@ import os.path
 import wx
 
 from controls.prefsDialog import PrefsDialog
-from controls.symbolSizeVisualiserFrame import SymbolSizeVisualiserFrame
+from controls.symbolSizeViewerFrame import SymbolSizeViewerFrame
 from models.objectFileModel import ObjectFileModel
 from models.prefsModel import PrefsModel
 from guiHelpers import Event
@@ -25,7 +25,7 @@ class FlashUsageAnalyserGui(object):
 		self._objectFile = ObjectFileModel()
 		self._objectFile.fileChangedEvent.addHandler(lambda x, y: wx.CallAfter(self._onObjectFileChanged, x, y))
 		
-		self._mainWindow = SymbolSizeVisualiserFrame()
+		self._mainWindow = SymbolSizeViewerFrame()
 		self._mainWindow.openFileEvent.addHandler(self._onOpenObjectFile)
 		self._mainWindow.prefsChangedEvent.addHandler(self._onPrefsChanged)
 		self._mainWindow.openPrefsDialogEvent.addHandler(self._onOpenPrefsDialog)
@@ -109,6 +109,6 @@ if __name__ == "__main__":
 		elfFile = None
 	
 	app = wx.App()
-	app.SetAppName("Symbol Size Visualiser")
+	app.SetAppName("Symbol Size Viewer")
 	gui = FlashUsageAnalyserGui(app, elfFile)
 	app.MainLoop() 
