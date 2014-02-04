@@ -2,7 +2,7 @@
 import os.path
 import watchdog.observers
 from watchdog.events import FileSystemEventHandler
-#from NMInfoParser import NMInfoParser
+
 from binUtilsParsers import NmParser, SizeParser
 from guiHelpers import Event
 
@@ -16,7 +16,7 @@ class FileWatcher(object):
 		def on_any_event(self, event):
 			if event.src_path == self._absPath or \
 				hasattr(event, "dest_path") and event.dest_path == self._absPath:
-					self._callback(self._path)
+					self._callback(self._path, os.path.isfile(self._absPath))
 						
 	def __init__(self, callback):
 		self._callback = callback
@@ -77,7 +77,7 @@ class ObjectFileModel(object):
 		
 		self.path = path
 		self._fileWatcher.setFileToWatch(path)
-		self.fileChangedEvent(self, False)
+		self.fileChangedEvent(self, os.path.isfile(path))
 	
 	def setWatchFileFileForChanges(self, watchForChanges):
 		if watchForChanges:
@@ -85,5 +85,5 @@ class ObjectFileModel(object):
 		else:
 			self._fileWatcher.stopWatching()
 	
-	def _fileWatcherCallback(self, path):
-		self._onFileChanged()
+	def _fileWatcherCallback(self, path, stillExists):
+		self.fileChangedEvent(self, stillExists)

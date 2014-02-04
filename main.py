@@ -43,6 +43,10 @@ class FlashUsageAnalyserGui(object):
 		self._objectFile.setFile(path)
 	
 	def _onObjectFileChanged(self, objectFile, stillExists):
+		if not stillExists:
+			#Input file has been deleted, don't clear out the data, nobody wants that
+			return
+		
 		try:
 			sizeInfo = objectFile.getSizeInfo()
 		except ValueError as e:
