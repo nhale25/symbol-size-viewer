@@ -6,11 +6,13 @@ import wx.lib.mixins.listctrl as listmix
 from memUsageGauge import MemUsageGauge
 from guiHelpers import Event
 
-class ObjectList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
+class ObjectList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
 	def __init__(self, *args, **kwargs):
 		kwargs["agwStyle"] = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.LC_SINGLE_SEL | ULC.ULC_NO_HIGHLIGHT | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT
 		ULC.UltimateListCtrl.__init__(self, *args, **kwargs)
 		listmix.ListCtrlAutoWidthMixin.__init__(self)
+		listmix.ColumnSorterMixin.__init__(self, 3)
+		self.itemDataMap = {}
 		
 		self._numberFormatter = lambda x: "%d"% x
 		
@@ -30,6 +32,7 @@ class ObjectList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
 	def _addRow(self, symbol, largestSymbolSize, symbolType):
 		pos = self.InsertStringItem(0, symbol.name)
 		self.SetItemData(pos, symbol)
+		self.itemDataMap[symbol] = (symbol.name, symbol.size, symbol.size)
 		
 		sizeStr = self._numberFormatter(symbol.size)
 		self.SetStringItem(pos, 1, sizeStr)
@@ -46,6 +49,7 @@ class ObjectList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
 				self._mainWin.DeleteItemWindow(item)
 		#end of workaround
 		
+		self.itemDataMap = {}
 		self.DeleteAllItems()
 		
 		if codeSymbols is not None and initDataSymbols is not None and roDataSymbols is not None:
@@ -57,4 +61,12 @@ class ObjectList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
 			for sym in roDataSymbols:
 				self._addRow(sym, largest, "readOnly")
 			
-			self.SortItems(lambda x, y: y.size - x.size)
+			self.SortListItems(1, False)
+			
+	#Required by listmix.ColumnSorterMixin
+	def GetListCtrl(self):
+		return self
+	
+	#Required by listmix.ColumnSorterMixin
+	def OnSortOrderChanged(self):
+		self.Refresh()
