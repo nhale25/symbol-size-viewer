@@ -72,7 +72,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 	
 	def _onOpen(self, event):
 		openFileDialog = wx.FileDialog(self, "Open ELF file", self._lastOpenedDirectory, "",
-                                       "ELF files (*.elf)|*.elf|All files|*", 
+                                       "Object files (*.elf; *.o)|*.elf;*.o|All files|*", 
                                        wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 		if openFileDialog.ShowModal() == wx.ID_OK:
 			path = openFileDialog.GetPath()
