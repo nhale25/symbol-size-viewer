@@ -9,15 +9,20 @@ from models.objectFileModel import ObjectFileModel
 from models.prefsModel import PrefsModel
 from guiHelpers import Event
 
-class FlashUsageAnalyserGui(object):
+class SymbolSizeViewer(object):
 	numberFormatters = {
 		"decimal": lambda x: locale.format("%d", x, grouping=True),
 		"hex": lambda x: "0x%x"% x,
 		}
 	
+	ICON_FILE = "icon.png"
+	CONFIG_FILENAME = "config"
+	
 	def __init__(self, app, objectFileName=None):
+		app.SetAppName("Symbol Size Viewer")
+		
 		paths = wx.StandardPaths.Get()
-		self._prefsFileLocation = os.path.join(paths.GetUserDataDir(), "config")
+		self._prefsFileLocation = os.path.join(paths.GetUserDataDir(), self.CONFIG_FILENAME)
 		
 		self._prefs = PrefsModel()
 		self._prefs.prefsChangedEvent.addHandler(self._onPrefsModelChanged)
@@ -30,6 +35,7 @@ class FlashUsageAnalyserGui(object):
 		self._mainWindow.prefsChangedEvent.addHandler(self._onPrefsChanged)
 		self._mainWindow.openPrefsDialogEvent.addHandler(self._onOpenPrefsDialog)
 		self._mainWindow.windowClosingEvent.addHandler(self._onAppClosing)
+		self._mainWindow.SetIcon(wx.Icon(self.ICON_FILE, wx.BITMAP_TYPE_PNG))
 		
 		self._prefs.loadFromFile(self._prefsFileLocation)
 		
@@ -104,11 +110,10 @@ if __name__ == "__main__":
 	import sys
 	
 	if len(sys.argv) > 1:
-		elfFile = sys.argv[1]
+		objectFile = sys.argv[1]
 	else:
-		elfFile = None
+		objectFile = None
 	
 	app = wx.App()
-	app.SetAppName("Symbol Size Viewer")
-	gui = FlashUsageAnalyserGui(app, elfFile)
+	gui = SymbolSizeViewer(app, objectFile)
 	app.MainLoop() 

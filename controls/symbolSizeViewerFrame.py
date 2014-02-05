@@ -11,6 +11,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 	def __init__(self, *args, **kwds):
 		kwds["title"] = wx.GetApp().GetAppName()
 		wx.Frame.__init__(self, None, *args, **kwds)
+		
 		self.openFileEvent = Event()
 		self.prefsChangedEvent = Event()
 		self.openPrefsDialogEvent = Event()
