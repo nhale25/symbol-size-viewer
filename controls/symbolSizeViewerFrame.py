@@ -6,6 +6,7 @@ from guiHelpers import Event
 from symbolList import SymbolList
 from totalFlashUsage import TotalFlashUsage
 from colorKey import ColorKey
+from objectFileSummary import ObjectFileSummary
 
 class SymbolSizeViewerFrame(wx.Frame):
 	def __init__(self, *args, **kwds):
@@ -58,12 +59,17 @@ class SymbolSizeViewerFrame(wx.Frame):
 		panel = wx.Panel(self)
 		self.colorKey = ColorKey(panel)
 		self.totalFlash = TotalFlashUsage(panel)
-		self.symbolList = SymbolList(panel)
+		
+		notebook = wx.Notebook(panel)
+		self.summary = ObjectFileSummary(notebook)
+		self.symbolList = SymbolList(notebook)
+		notebook.AddPage(self.summary, "Summary")
+		notebook.AddPage(self.symbolList, "Symbols")
 		
 		vBox = wx.BoxSizer(wx.VERTICAL)
 		vBox.Add(self.colorKey, 0, wx.ALL | wx.ALIGN_RIGHT, 4)
 		vBox.Add(self.totalFlash, 0, wx.EXPAND | wx.ALL, 4)
-		vBox.Add(self.symbolList, 1, wx.EXPAND | wx.ALL, 4)
+		vBox.Add(notebook, 1, wx.EXPAND | wx.ALL, 4)
 		panel.SetSizer(vBox)
 	
 	def _onClose(self, event):
@@ -81,6 +87,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 	def updateObjectFile(self, sizeInfo, codeSymbols, initDataSymbols, roDataSymbols, path):
 		roDataSize = sum([sym.size for sym in roDataSymbols])
 		self.totalFlash.updateInfo(sizeInfo, roDataSize)
+		self.summary.updateInfo(sizeInfo, codeSymbols, roDataSymbols)
 		self.symbolList.updateInfo(codeSymbols, initDataSymbols, roDataSymbols)
 		
 		now = datetime.datetime.now()
@@ -91,6 +98,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 	def setNumberFormatter(self, formatter):
 		self.totalFlash.setNumberFormatter(formatter)
 		self.symbolList.setNumberFormatter(formatter)
+		self.summary.setNumberFormatter(formatter)
 	
 	def setNumberFormatProperty(self, value):
 		if value == "decimal":
