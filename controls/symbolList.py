@@ -58,6 +58,8 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
 		self.SetItemWindow(pos, col=self.COL_GRAPH, wnd=gauge, expand=True)
 	
 	def updateInfo(self, codeSymbols, initDataSymbols, roDataSymbols):
+		previousSort = self.GetSortState()
+		
 		#workaround for bug in certain versions of UltimateListCtrl when calling DeleteAllItems()
 		for item in self._mainWin._itemWithWindow[:]:
 			if item.GetWindow():
@@ -76,7 +78,9 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
 			for sym in roDataSymbols:
 				self._addRow(sym, largest, "readOnly")
 			
-			self.SortListItems(self.COL_SIZE, False)
+			if previousSort == (-1, 0): #Hasn't been sorted yet
+				previousSort = (self.COL_SIZE, False)
+			self.SortListItems(*previousSort)
 			
 	#Required by listmix.ColumnSorterMixin
 	def GetListCtrl(self):
