@@ -1,5 +1,6 @@
 
 import datetime
+import os.path
 import wx
 
 from guiHelpers import Event
@@ -94,6 +95,10 @@ class SymbolSizeViewerFrame(wx.Frame):
 		lastLoadStr = now.strftime("Loaded at %H:%M:%S")
 		self._statusBar.SetStatusText(path, 0)
 		self._statusBar.SetStatusText(lastLoadStr, 1)
+		
+		fileName = os.path.basename(path)
+		appName = wx.GetApp().GetAppName()
+		self.SetTitle("%s - %s"% (fileName, appName))
 	
 	def setNumberFormatter(self, formatter):
 		self.totalFlash.setNumberFormatter(formatter)
