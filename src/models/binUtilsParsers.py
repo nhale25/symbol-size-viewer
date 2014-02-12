@@ -83,6 +83,7 @@ class BinUtilParser(object):
 class SizeParser(BinUtilParser):
 	def parseOutput(self, path):
 		output = self._runExecutable([path])
+
 		lines = output.split("\n")
 		if len(lines) < 2:
 			return None

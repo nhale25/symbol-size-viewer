@@ -15,7 +15,7 @@ class SymbolSizeViewer(object):
 		"hex": lambda x: "0x%x"% x,
 		}
 	
-	ICON_FILE = "icon.png"
+	ICON_FILE = "../icon.png"
 	CONFIG_FILENAME = "config"
 	
 	def __init__(self, app, objectFileName=None):
