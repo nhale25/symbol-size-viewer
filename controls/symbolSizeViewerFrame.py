@@ -56,6 +56,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 		self._initMenu()
 		self.Bind(wx.EVT_CLOSE, self._onClose)
 		self._statusBar = self.CreateStatusBar(2)
+		self._statusBar.SetStatusWidths([-1, 200])
 		
 		panel = wx.Panel(self)
 		self.colorKey = ColorKey(panel)
