@@ -1,3 +1,7 @@
+import os.path
+
+def getRelativePath(relativeTo, path):
+	return os.path.abspath(os.path.join(os.path.dirname(relativeTo), path))
 
 class Event(object):
 	def __init__(self):

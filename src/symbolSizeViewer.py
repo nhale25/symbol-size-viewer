@@ -7,7 +7,7 @@ from controls.prefsDialog import PrefsDialog
 from controls.symbolSizeViewerFrame import SymbolSizeViewerFrame
 from models.objectFileModel import ObjectFileModel
 from models.prefsModel import PrefsModel
-from guiHelpers import Event
+from guiHelpers import Event, getRelativePath
 
 class SymbolSizeViewer(object):
 	numberFormatters = {
@@ -15,7 +15,7 @@ class SymbolSizeViewer(object):
 		"hex": lambda x: "0x%x"% x,
 		}
 	
-	ICON_FILE = "../icon.png"
+	ICON_FILE = getRelativePath(__file__, "../icon.png")
 	CONFIG_FILENAME = "config"
 	
 	def __init__(self, app, objectFileName=None):
