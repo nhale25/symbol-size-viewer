@@ -77,6 +77,10 @@ class ObjectFileSummary(wx.Panel):
 		self._updateWidgets()
 	
 	def updateInfo(self, sizeInfo, codeSymbols, roDataSymbols):
+		if sizeInfo is None:
+			self.clearInfo()
+			return
+		
 		roDataSum = sum([sym.size for sym in roDataSymbols])
 		
 		self._values["code"] = sizeInfo.text - roDataSum
@@ -91,4 +95,6 @@ class ObjectFileSummary(wx.Panel):
 		self._dataValid = True
 		self._updateWidgets()
 	
-
+	def clearInfo(self):
+		self._dataValid = False
+		self._updateWidgets()

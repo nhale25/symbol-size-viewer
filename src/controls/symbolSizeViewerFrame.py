@@ -8,6 +8,7 @@ from symbolList import SymbolList
 from totalFlashUsage import TotalFlashUsage
 from colorKey import ColorKey
 from objectFileSummary import ObjectFileSummary
+from messagePanel import MessagePanel
 
 class SymbolSizeViewerFrame(wx.Frame):
 	def __init__(self, *args, **kwds):
@@ -61,6 +62,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 		panel = wx.Panel(self)
 		self.colorKey = ColorKey(panel)
 		self.totalFlash = TotalFlashUsage(panel)
+		self.message = MessagePanel(None, panel)
 		
 		notebook = wx.Notebook(panel)
 		self.summary = ObjectFileSummary(notebook)
@@ -71,6 +73,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 		vBox = wx.BoxSizer(wx.VERTICAL)
 		vBox.Add(self.colorKey, 0, wx.ALL | wx.ALIGN_RIGHT, 4)
 		vBox.Add(self.totalFlash, 0, wx.EXPAND | wx.ALL, 4)
+		vBox.Add(self.message, 0, wx.EXPAND | wx.ALL, 4)
 		vBox.Add(notebook, 1, wx.EXPAND | wx.ALL, 4)
 		panel.SetSizer(vBox)
 	
@@ -100,6 +103,9 @@ class SymbolSizeViewerFrame(wx.Frame):
 		fileName = os.path.basename(path)
 		appName = wx.GetApp().GetAppName()
 		self.SetTitle("%s - %s"% (fileName, appName))
+	
+	def setMessage(self, message):
+		self.message.setMessage(message)
 	
 	def setNumberFormatter(self, formatter):
 		self.totalFlash.setNumberFormatter(formatter)

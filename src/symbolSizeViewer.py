@@ -7,6 +7,7 @@ from controls.prefsDialog import PrefsDialog
 from controls.symbolSizeViewerFrame import SymbolSizeViewerFrame
 from models.objectFileModel import ObjectFileModel
 from models.prefsModel import PrefsModel
+from models.binUtilsParsers import ParseError
 from guiHelpers import Event, getRelativePath
 
 class SymbolSizeViewer(object):
@@ -51,29 +52,24 @@ class SymbolSizeViewer(object):
 	def _onObjectFileChanged(self, objectFile, stillExists):
 		if not stillExists:
 			#Input file has been deleted, don't clear out the data, nobody wants that
+			self._mainWindow.setMessage(objectFile.path + " not found")
 			return
 		
 		try:
 			sizeInfo = objectFile.getSizeInfo()
-		except ValueError as e:
-			print e
-			sizeInfo = None
-		
-		try:
 			symbolInfo = objectFile.getSymbolInfo()
-		except ValueError as e:
-			print e
-			symbolInfo = None
-			
-		if symbolInfo:
-			codeSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "t"]
-			initDataSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "gd"]
-			roDataSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "r"]
+		except ParseError as e:
+			message = str(e)
+			sizeInfo = None
+			symbolInfo = []
 		else:
-			codeSymbols = None
-			initDataSymbols = None
-			roDataSymbols = None
+			message = None
+			
+		codeSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "t"]
+		initDataSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "gd"]
+		roDataSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "r"]
 		
+		self._mainWindow.setMessage(message)
 		self._mainWindow.updateObjectFile(sizeInfo, codeSymbols, initDataSymbols, roDataSymbols, objectFile.path)
 	
 	def _onPrefsModelChanged(self, prefs):

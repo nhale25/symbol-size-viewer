@@ -1,6 +1,9 @@
 
 import subprocess
 import os.path
+import errno
+
+class ParseError(Exception): pass
 
 class SizeInfo(object):
 	def __init__(self, text, data, bss):
@@ -67,14 +70,19 @@ class BinUtilParser(object):
 		
 	def _runExecutable(self, args):
 		if not self._exePath:
-			raise ValueError("No executable set")
+			raise ParseError("No executable set")
 		
 		if hasattr(subprocess, "STARTUPINFO"):
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 		else:
 			startupinfo = None
-		process = subprocess.Popen([self._exePath] + args, stdout=subprocess.PIPE, startupinfo=startupinfo)
+		try:
+			process = subprocess.Popen([self._exePath] + args, stdout=subprocess.PIPE, startupinfo=startupinfo)
+		except OSError as e:
+			if e.errno == errno.ENOENT:
+				raise ParseError("'%s' not found."% self._exePath)
+
 		return process.communicate()[0]
 		
 	def parseOutput(self, filename):
@@ -86,14 +94,14 @@ class SizeParser(BinUtilParser):
 
 		lines = output.split("\n")
 		if len(lines) < 2:
-			return None
+			raise ParseError("Failed running 'size' on '%s'"% path)
 		
 		try:
 			text, data, bss, _ = lines[1].split(None, 3)
 			info = SizeInfo(int(text), int(data), int(bss))
 		except ValueError:
-			info = None
-			
+			raise ParseError("Failed running 'size' on '%s'"% path)
+		
 		return info
 
 class NmParser(BinUtilParser):

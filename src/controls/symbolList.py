@@ -69,7 +69,7 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
 		self.itemDataMap = {}
 		self.DeleteAllItems()
 		
-		if codeSymbols is not None and initDataSymbols is not None and roDataSymbols is not None:
+		if codeSymbols or initDataSymbols or roDataSymbols:
 			largest = max([obj.size for obj in codeSymbols + initDataSymbols + roDataSymbols])
 			for sym in codeSymbols:
 				self._addRow(sym, largest, "code")

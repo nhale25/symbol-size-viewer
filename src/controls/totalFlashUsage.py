@@ -33,7 +33,7 @@ class TotalFlashUsage(wx.Panel):
 
 	def updateInfo(self, sizeInfo, roDataSize):
 		if sizeInfo is None:
-			self.gauge.SetCodeData(0, 0)
+			self.gauge.SetSizes(0, 0, 0)
 			self._dataLoaded = False
 			
 		else:
