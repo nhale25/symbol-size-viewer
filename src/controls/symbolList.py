@@ -32,6 +32,13 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
 		self.InsertColumn(self.COL_SIZE, "Size", width=50)
 		self.InsertColumn(self.COL_GRAPH, "")
 		self.setResizeColumn(self.COL_GRAPH + 1)
+		
+		#hack: Make self redraw properly when on a tabbed notebook with certain wxPython versions.
+		self.GetParent().Bind(
+			wx.EVT_NOTEBOOK_PAGE_CHANGED,
+			lambda e: wx.CallAfter(self.SendSizeEvent) and e.Skip()
+			)
+		#end hack
 	
 	def setNumberFormatter(self, formatter):
 		self._numberFormatter = formatter
@@ -42,7 +49,7 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
 			self.SetStringItem(pos, self.COL_SIZE, sizeStr)
 	
 	def _addRow(self, symbol, largestSymbolSize, symbolType):
-		pos = self.InsertStringItem(self.COL_NAME, symbol.name)
+		pos = self.InsertStringItem(self.GetItemCount(), symbol.name)
 		self.SetItemData(pos, symbol)
 		self.itemDataMap[symbol] = (symbol.name.lower(), symbolType, symbol.size, symbol.size)
 		
