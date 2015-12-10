@@ -15,10 +15,10 @@ class PrefsDialog(wx.Dialog):
 		gridSizer = wx.FlexGridSizer(cols=2, hgap=20, vgap=10)
 		gridSizer.AddGrowableCol(1, 1)
 		gridSizer.AddMany([
-			wx.StaticText(self, label="Location of nm.exe:"), (self.txt_nmExeLoc, 1, wx.EXPAND),
-			wx.StaticText(self, label="Location of size.exe:"), (self.txt_sizeExeLoc, 1, wx.EXPAND),
+			wx.StaticText(self, label="Location of nm executable:"), (self.txt_nmExeLoc, 1, wx.EXPAND),
+			wx.StaticText(self, label="Location of size executable:"), (self.txt_sizeExeLoc, 1, wx.EXPAND),
 			wx.StaticText(self, label="Size of Flash area:"), (self.txt_flashSize, 1, wx.EXPAND),
-			wx.StaticText(self, label="Automatically reload input file if it changes:"), (self.chk_autoUpdate, 1, wx.EXPAND),
+			wx.StaticText(self, label="Automatically reload input file:"), (self.chk_autoUpdate, 1, wx.EXPAND),
 			])
 		
 		buttons = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
