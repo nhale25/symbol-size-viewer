@@ -110,3 +110,63 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
                 return (value1, value2)
         else:
             return listmix.ColumnSorterMixin.GetSecondarySortValues(self, col, key1, key2)
+
+    #this version contains the fix for including/not-including the width of the scrollbar
+    def _doResize(self):
+        """ Resize the last column as appropriate.
+
+            If the list's columns are too wide to fit within the window, we use
+            a horizontal scrollbar.  Otherwise, we expand the right-most column
+            to take up the remaining free space in the list.
+
+            We remember the current size of the last column, before resizing,
+            as the preferred minimum width if we haven't previously been given
+            or calculated a minimum width.  This ensure that repeated calls to
+            _doResize() don't cause the last column to size itself too large.
+        """
+
+        if not self:  # avoid a PyDeadObject error
+            return
+
+        if self.GetSize().height < 32:
+            return  # avoid an endless update bug when the height is small.
+
+        numCols = self.GetColumnCount()
+        if numCols == 0: return # Nothing to resize.
+
+        if(self._resizeColStyle == "LAST"):
+            resizeCol = self.GetColumnCount()
+        else:
+            resizeCol = self._resizeCol
+
+        resizeCol = max(1, resizeCol)
+
+        if self._resizeColMinWidth == None:
+            self._resizeColMinWidth = self.GetColumnWidth(resizeCol - 1)
+
+        # We're showing the vertical scrollbar -> allow for scrollbar width
+        # NOTE: on GTK, the scrollbar is included in the client size, but on
+        # Windows it is not included
+        listWidth = self.GetClientSize().width
+        if wx.Platform != '__WXMSW__':
+            if self.GetItemCount() > self.GetCountPerPage():
+                scrollWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+                listWidth = listWidth - scrollWidth
+
+        totColWidth = 0 # Width of all columns except last one.
+        for col in range(numCols):
+            if col != (resizeCol-1):
+                totColWidth = totColWidth + self.GetColumnWidth(col)
+
+        resizeColWidth = self.GetColumnWidth(resizeCol - 1)
+
+        if totColWidth + self._resizeColMinWidth > listWidth:
+            # We haven't got the width to show the last column at its minimum
+            # width -> set it to its minimum width and allow the horizontal
+            # scrollbar to show.
+            self.SetColumnWidth(resizeCol-1, self._resizeColMinWidth)
+            return
+
+        # Resize the last column to take up the remaining available space.
+
+        self.SetColumnWidth(resizeCol-1, listWidth - totColWidth)
