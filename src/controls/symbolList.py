@@ -2,15 +2,17 @@
 import wx
 import wx.lib.agw.ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl as listmix
+from wx.lib.agw.pygauge import PyGauge
 
-from memUsageGauge import MemUsageGauge
+from graphs import StackedPyGaugeWithText
+from controls import defaultColors
 from guiHelpers import Event
 
 class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
     symbolTypeNames = {
         "code":"Code",
-        "initialized":"Initialised data",
-        "readOnly":"Read-only data",
+        "initData":"Initialised data",
+        "roData":"Read-only data",
         }
 
     COL_NAME = 0
@@ -59,9 +61,10 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
         sizeStr = self._numberFormatter(symbol.size)
         self.SetStringItem(pos, self.COL_SIZE, sizeStr)
 
-        gauge = MemUsageGauge(self, wx.ID_ANY, style=wx.GA_HORIZONTAL, size=(-1, 20))
-        gauge.SetCapacity(largestSymbolSize)
-        gauge.SetSizes(**{symbolType:symbol.size})
+        gauge = PyGauge(self, wx.ID_ANY, style=wx.GA_HORIZONTAL | wx.SUNKEN_BORDER, size=(-1, 20))
+        gauge.SetRange(largestSymbolSize)
+        gauge.SetBarColor(defaultColors[symbolType])
+        gauge.SetValue(symbol.size)
         self.SetItemWindow(pos, col=self.COL_GRAPH, wnd=gauge, expand=True)
 
     def updateInfo(self, codeSymbols, initDataSymbols, roDataSymbols):
@@ -81,9 +84,9 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
             for sym in codeSymbols:
                 self._addRow(sym, largest, "code")
             for sym in initDataSymbols:
-                self._addRow(sym, largest, "initialized")
+                self._addRow(sym, largest, "initData")
             for sym in roDataSymbols:
-                self._addRow(sym, largest, "readOnly")
+                self._addRow(sym, largest, "roData")
 
             if previousSort == (-1, 0): #Hasn't been sorted yet
                 previousSort = (self.COL_SIZE, False)

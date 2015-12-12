@@ -12,18 +12,6 @@ class PrefsHelpers:
         return string #FIXME: do something about backslashes on windows, maybe?
 
     @staticmethod
-    def sizeToInt(size):
-        if size.lower().startswith("0x"):
-            base = 16
-        else:
-            base = 10
-
-        try:
-            return int(size, base)
-        except ValueError:
-            return 0
-
-    @staticmethod
     def stringToBool(string):
         return string.lower() in ["true", "t", "yes", "y", "1"]
 
@@ -48,7 +36,7 @@ class PrefsModel:
             "nmExeLocation": 		Preference("", PrefsHelpers.stringToPath),
             "sizeExeLocation":		Preference("", PrefsHelpers.stringToPath),
             "numberFormat": 		Preference("decimal"),
-            "totalFlashSize": 		Preference("0", PrefsHelpers.sizeToInt),
+            "totalFlashSize": 		Preference("0"),
             "lastOpenedDirectory":	Preference("", PrefsHelpers.stringToPath),
             "watchFileForChanges":	Preference("true", PrefsHelpers.stringToBool),
             "showColorKey": 		Preference("true", PrefsHelpers.stringToBool),

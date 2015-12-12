@@ -9,7 +9,6 @@ class PrefsDialog(wx.Dialog):
 
         self.txt_nmExeLoc = wx.TextCtrl(self, size=(200, -1))
         self.txt_sizeExeLoc = wx.TextCtrl(self, size=(200, -1))
-        self.txt_flashSize = wx.TextCtrl(self)
         self.chk_autoUpdate = wx.CheckBox(self)
 
         gridSizer = wx.FlexGridSizer(cols=2, hgap=20, vgap=10)
@@ -17,9 +16,8 @@ class PrefsDialog(wx.Dialog):
         gridSizer.AddMany([
             wx.StaticText(self, label="Location of nm executable:"), (self.txt_nmExeLoc, 1, wx.EXPAND),
             wx.StaticText(self, label="Location of size executable:"), (self.txt_sizeExeLoc, 1, wx.EXPAND),
-            wx.StaticText(self, label="Size of Flash area:"), (self.txt_flashSize, 1, wx.EXPAND),
-            wx.StaticText(self, label="Automatically reload input file:"), (self.chk_autoUpdate, 1, wx.EXPAND),
-            ])
+            wx.StaticText(self, label="Watch input file for changes:"), (self.chk_autoUpdate, 1, wx.EXPAND),
+        ])
 
         buttons = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
 
@@ -31,13 +29,11 @@ class PrefsDialog(wx.Dialog):
         #load initial values
         self.txt_nmExeLoc.SetValue(prefs["nmExeLocation"].getAsString())
         self.txt_sizeExeLoc.SetValue(prefs["sizeExeLocation"].getAsString())
-        self.txt_flashSize.SetValue(prefs["totalFlashSize"].getAsString())
         self.chk_autoUpdate.SetValue(prefs["watchFileForChanges"].get())
 
     def getPreferences(self):
         return {
                 "nmExeLocation": self.txt_nmExeLoc.GetValue(),
                 "sizeExeLocation": self.txt_sizeExeLoc.GetValue(),
-                "totalFlashSize": self.txt_flashSize.GetValue(),
                 "watchFileForChanges": self.chk_autoUpdate.GetValue()
                 }

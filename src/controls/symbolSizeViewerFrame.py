@@ -5,10 +5,23 @@ import wx
 
 from guiHelpers import Event
 from symbolList import SymbolList
-from totalFlashUsage import TotalFlashUsage
 from colorKey import ColorKey
 from objectFileSummary import ObjectFileSummary
 from messagePanel import MessagePanel
+from graphs import CodeTotalGraph, MemoryTotalGraph
+
+
+def unknownBaseStringToInt(s):
+    s = s.lower()
+    if s.startswith("0x"):
+        base = 16
+    elif s.startswith("0b"):
+        base = 2
+    else:
+        base = 10
+
+    return int(s, base)
+
 
 class SymbolSizeViewerFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -36,15 +49,17 @@ class SymbolSizeViewerFrame(wx.Frame):
         menuBar.Append(fileMenu, "File")
 
         #view menu
-        viewMenu = wx.Menu()
         numberFormatMenu = wx.Menu()
         self.menuItem_decimal = numberFormatMenu.Append(wx.ID_ANY, "Decimal", kind=wx.ITEM_RADIO)
         self.menuItem_hex = numberFormatMenu.Append(wx.ID_ANY, "Hex", kind=wx.ITEM_RADIO)
         self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"numberFormat":"decimal"}), self.menuItem_decimal)
         self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"numberFormat":"hex"}), self.menuItem_hex)
+
+        viewMenu = wx.Menu()
         viewMenu.AppendMenu(wx.ID_ANY, "Number format", numberFormatMenu)
         self.menuItem_showKey = viewMenu.Append(wx.ID_ANY, "Show colour key", kind=wx.ITEM_CHECK)
         self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"showColorKey":self.menuItem_showKey.IsChecked()}), self.menuItem_showKey)
+
         menuBar.Append(viewMenu, "View")
 
         #preferences menu
@@ -61,7 +76,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 
         panel = wx.Panel(self)
         self.colorKey = ColorKey(panel)
-        self.totalFlash = TotalFlashUsage(panel)
+        self.totalCode = CodeTotalGraph(panel)
         self.message = MessagePanel(None, panel)
 
         notebook = wx.Notebook(panel)
@@ -70,9 +85,20 @@ class SymbolSizeViewerFrame(wx.Frame):
         notebook.AddPage(self.summary, "Summary")
         notebook.AddPage(self.symbolList, "Symbols")
 
+        self.txt_codeSize = wx.TextCtrl(panel, size=(80, -1))
+        self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
+            {"totalFlashSize": self.txt_codeSize.GetValue()}), self.txt_codeSize)
+
+        hBox = wx.BoxSizer(wx.HORIZONTAL)
+        hBox.AddMany([
+            wx.StaticText(panel, label="Code size limit:"), self.txt_codeSize,
+            ((1,1), 1), #expanding spacer
+            self.colorKey,
+        ])
+
         vBox = wx.BoxSizer(wx.VERTICAL)
-        vBox.Add(self.colorKey, 0, wx.ALL | wx.ALIGN_RIGHT, 4)
-        vBox.Add(self.totalFlash, 0, wx.EXPAND | wx.ALL, 4)
+        vBox.Add(hBox, 0, wx.EXPAND | wx.ALL, 4)
+        vBox.Add(self.totalCode, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(self.message, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(notebook, 1, wx.EXPAND | wx.ALL, 4)
         panel.SetSizer(vBox)
@@ -91,9 +117,14 @@ class SymbolSizeViewerFrame(wx.Frame):
 
     def updateObjectFile(self, sizeInfo, codeSymbols, initDataSymbols, roDataSymbols, path):
         roDataSize = sum([sym.size for sym in roDataSymbols])
-        self.totalFlash.updateInfo(sizeInfo, roDataSize)
         self.summary.updateInfo(sizeInfo, codeSymbols, roDataSymbols)
         self.symbolList.updateInfo(codeSymbols, initDataSymbols, roDataSymbols)
+
+        if sizeInfo is not None:
+            code = sizeInfo.text - roDataSize
+            self.totalCode.setCategoryValues(code, roDataSize, sizeInfo.data)
+        else:
+            self.totalCode.setCategoryValues()
 
         now = datetime.datetime.now()
         lastLoadStr = now.strftime("Loaded at %H:%M:%S")
@@ -108,7 +139,7 @@ class SymbolSizeViewerFrame(wx.Frame):
         self.message.setMessage(message)
 
     def setNumberFormatter(self, formatter):
-        self.totalFlash.setNumberFormatter(formatter)
+        self.totalCode.setNumberFormatter(formatter)
         self.symbolList.setNumberFormatter(formatter)
         self.summary.setNumberFormatter(formatter)
 
@@ -119,7 +150,13 @@ class SymbolSizeViewerFrame(wx.Frame):
             self.menuItem_hex.Check(True)
 
     def setTotalFlashSize(self, size):
-        self.totalFlash.setTotalFlashSize(size)
+        try:
+            sizeNumber = unknownBaseStringToInt(size)
+        except ValueError:
+            sizeNumber = None
+
+        self.totalCode.setLimit(sizeNumber)
+        self.txt_codeSize.ChangeValue(size)
 
     def setLastOpenedDirectory(self, dir):
         self._lastOpenedDirectory = dir
