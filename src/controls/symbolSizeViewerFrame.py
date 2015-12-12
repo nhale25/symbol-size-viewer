@@ -74,24 +74,23 @@ class SymbolSizeViewerFrame(wx.Frame):
         self._statusBar = self.CreateStatusBar(2)
         self._statusBar.SetStatusWidths([-1, 200])
 
-        panel = wx.Panel(self)
-        self.colorKey = ColorKey(panel)
-        self.totalCode = CodeTotalGraph(panel)
-        self.message = MessagePanel(None, panel)
+        self.colorKey = ColorKey(self)
+        self.totalCode = CodeTotalGraph(self)
+        self.message = MessagePanel(None, self)
 
-        notebook = wx.Notebook(panel)
+        notebook = wx.Notebook(self)
         self.summary = ObjectFileSummary(notebook)
         self.symbolList = SymbolList(notebook)
         notebook.AddPage(self.summary, "Summary")
         notebook.AddPage(self.symbolList, "Symbols")
 
-        self.txt_codeSize = wx.TextCtrl(panel, size=(80, -1))
+        self.txt_codeSize = wx.TextCtrl(self, size=(80, -1))
         self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
             {"totalFlashSize": self.txt_codeSize.GetValue()}), self.txt_codeSize)
 
         hBox = wx.BoxSizer(wx.HORIZONTAL)
         hBox.AddMany([
-            wx.StaticText(panel, label="Code size limit:"), self.txt_codeSize,
+            wx.StaticText(self, label="Code size limit:"), self.txt_codeSize,
             ((1,1), 1), #expanding spacer
             self.colorKey,
         ])
@@ -101,7 +100,7 @@ class SymbolSizeViewerFrame(wx.Frame):
         vBox.Add(self.totalCode, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(self.message, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(notebook, 1, wx.EXPAND | wx.ALL, 4)
-        panel.SetSizer(vBox)
+        self.SetSizerAndFit(vBox)
 
     def _onClose(self, event):
         self.Destroy()
