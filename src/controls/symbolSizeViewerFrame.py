@@ -76,6 +76,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 
         self.colorKey = ColorKey(self)
         self.totalCode = CodeTotalGraph(self)
+        self.totalMemory = MemoryTotalGraph(self)
         self.message = MessagePanel(None, self)
 
         notebook = wx.Notebook(self)
@@ -88,9 +89,14 @@ class SymbolSizeViewerFrame(wx.Frame):
         self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
             {"totalFlashSize": self.txt_codeSize.GetValue()}), self.txt_codeSize)
 
+        self.txt_memorySize = wx.TextCtrl(self, size=(80, -1))
+        self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
+            {"totalMemorySize": self.txt_memorySize.GetValue()}), self.txt_memorySize)
+
         hBox = wx.BoxSizer(wx.HORIZONTAL)
         hBox.AddMany([
             wx.StaticText(self, label="Code size limit:"), self.txt_codeSize,
+            wx.StaticText(self, label="Memory size limit:"), self.txt_memorySize,
             ((1,1), 1), #expanding spacer
             self.colorKey,
         ])
@@ -98,6 +104,7 @@ class SymbolSizeViewerFrame(wx.Frame):
         vBox = wx.BoxSizer(wx.VERTICAL)
         vBox.Add(hBox, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(self.totalCode, 0, wx.EXPAND | wx.ALL, 4)
+        vBox.Add(self.totalMemory, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(self.message, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(notebook, 1, wx.EXPAND | wx.ALL, 4)
         self.SetSizerAndFit(vBox)
@@ -122,8 +129,10 @@ class SymbolSizeViewerFrame(wx.Frame):
         if sizeInfo is not None:
             code = sizeInfo.text - roDataSize
             self.totalCode.setCategoryValues(code, roDataSize, sizeInfo.data)
+            self.totalMemory.setCategoryValues(sizeInfo.data, sizeInfo.bss)
         else:
             self.totalCode.setCategoryValues()
+            self.totalMemory.setCategoryValues()
 
         now = datetime.datetime.now()
         lastLoadStr = now.strftime("Loaded at %H:%M:%S")
@@ -139,6 +148,7 @@ class SymbolSizeViewerFrame(wx.Frame):
 
     def setNumberFormatter(self, formatter):
         self.totalCode.setNumberFormatter(formatter)
+        self.totalMemory.setNumberFormatter(formatter)
         self.symbolList.setNumberFormatter(formatter)
         self.summary.setNumberFormatter(formatter)
 
@@ -156,6 +166,15 @@ class SymbolSizeViewerFrame(wx.Frame):
 
         self.totalCode.setLimit(sizeNumber)
         self.txt_codeSize.ChangeValue(size)
+
+    def setTotalMemorySize(self, size):
+        try:
+            sizeNumber = unknownBaseStringToInt(size)
+        except ValueError:
+            sizeNumber = None
+
+        self.totalMemory.setLimit(sizeNumber)
+        self.txt_memorySize.ChangeValue(size)
 
     def setLastOpenedDirectory(self, dir):
         self._lastOpenedDirectory = dir

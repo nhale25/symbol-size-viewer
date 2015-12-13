@@ -81,6 +81,7 @@ class SymbolSizeViewer(object):
         self._mainWindow.setNumberFormatter(formatter)
 
         self._mainWindow.setTotalFlashSize(prefs["totalFlashSize"].get())
+        self._mainWindow.setTotalMemorySize(prefs["totalMemorySize"].get())
         self._mainWindow.setLastOpenedDirectory(prefs["lastOpenedDirectory"].get())
         self._mainWindow.showColorKey(prefs["showColorKey"].get())
 

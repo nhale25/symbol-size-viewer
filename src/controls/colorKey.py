@@ -11,6 +11,7 @@ class ColorKey(wx.Panel):
         self._addColor(hBox, "Code", defaultColors["code"])
         self._addColor(hBox, "Read-only data", defaultColors["roData"])
         self._addColor(hBox, "Initialized data", defaultColors["initData"])
+        self._addColor(hBox, "Uninitialized data", defaultColors["uninitData"])
 
     def _addColor(self, sizer, name, color):
         panel = wx.Panel(self, size=(14, 14), style=wx.SIMPLE_BORDER)
