@@ -6,9 +6,43 @@ from wx.lib.agw.pygauge import PyGauge
 
 from graphs import StackedPyGaugeWithText
 from controls import defaultColors
-from guiHelpers import Event
 
-class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
+
+class SymbolList(wx.Panel):
+    def __init__(self, *args, **kwargs):
+        wx.Panel.__init__(self, *args, **kwargs)
+        self._numberFormatter = lambda x: "%d"% x
+        self._list = SymbolListList(self)
+
+        self._loading = wx.StaticText(self, label="Updating...")
+        font = wx.Font(18, wx.DECORATIVE, wx.NORMAL, wx.NORMAL)
+        self._loading.SetFont(font)
+        self._loading.Hide()
+
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._sizer.Add(self._list, 1, wx.EXPAND)
+        self._sizer.Add(self._loading, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+        self.SetSizerAndFit(self._sizer)
+
+    def _updateDone(self):
+        self._loading.Hide()
+        self._list.Show()
+        self.Layout()
+
+    def setNumberFormatter(self, formatter):
+        self._list.setNumberFormatter(formatter)
+
+    def updateInfo(self, *args):
+        self._list.Hide()
+        self._loading.Show()
+        self.Layout()
+        
+        wx.CallAfter(lambda:
+            self._list.updateInfo(self._updateDone, *args)
+        )
+
+
+class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
     symbolTypeNames = {
         "code":"Code",
         "initData":"Initialised data",
@@ -67,7 +101,7 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
         gauge.SetValue(symbol.size)
         self.SetItemWindow(pos, col=self.COL_GRAPH, wnd=gauge, expand=True)
 
-    def updateInfo(self, codeSymbols, initDataSymbols, roDataSymbols):
+    def updateInfo(self, updateDoneCallback, codeSymbols, initDataSymbols, roDataSymbols):
         previousSort = self.GetSortState()
 
         #workaround for bug in certain versions of UltimateListCtrl when calling DeleteAllItems()
@@ -91,6 +125,8 @@ class SymbolList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.C
             if previousSort == (-1, 0): #Hasn't been sorted yet
                 previousSort = (self.COL_SIZE, False)
             self.SortListItems(*previousSort)
+
+        updateDoneCallback()
 
     #Required by listmix.ColumnSorterMixin
     def GetListCtrl(self):
