@@ -113,9 +113,10 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
             self.itemDataMap = {}
             self.DeleteAllItems()
 
-            largest = max([obj.size for obj in symbols])
-            for sym in symbols:
-                self._addRow(sym, largest)
+            if symbols:
+                largest = max([obj.size for obj in symbols])
+                for sym in symbols:
+                    self._addRow(sym, largest)
         updateDoneCallback()
 
     #Required by listmix.ColumnSorterMixin
