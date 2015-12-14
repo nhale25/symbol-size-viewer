@@ -1,7 +1,6 @@
 
 import subprocess
 import os.path
-import errno
 
 import symbolTypes
 
@@ -95,23 +94,11 @@ class ExternalToolGeneratedFile(object):
         return [self._toolPath, self._filePath]
 
     def _runExternalTool(self):
-        if hasattr(subprocess, "STARTUPINFO"):
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        else:
-            startupinfo = None
-
         try:
-            process = subprocess.Popen(self._buildArgs(), stdout=subprocess.PIPE, startupinfo=startupinfo)
-        except OSError as e:
-            if e.errno == errno.ENOENT:
-                raise ParseError("Input file '%s' not found."% self._fileath)
-            elif e.errno == errno.ACCES:
-                raise ParseError("External tool '%s' not found."% self._exePath)
-            else:
-                raise ParseError(e)
-
-        return process.communicate()[0]
+            output = subprocess.check_output(self._buildArgs(), stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            raise ParseError("Error calling '%s': %s"% (self._toolPath, e.output))
+        return output
 
 
 class SizeOutputFile(ExternalToolGeneratedFile):

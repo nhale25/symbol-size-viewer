@@ -6,6 +6,7 @@ import wx
 from controls.prefsDialog import PrefsDialog
 from controls.symbolSizeViewerFrame import SymbolSizeViewerFrame
 
+from models.binUtilsOutputFiles import ParseError
 from models.objectFile import ObjectFile
 from models.fileWatcher import FileWatcher
 from models.prefsModel import PrefsModel
@@ -56,16 +57,16 @@ class SymbolSizeViewer(object):
             #Input file has been deleted, don't clear out the data, nobody wants that
             self._mainWindow.setMessage(path + " not found")
             return
-
-        objectFile = ObjectFile(
-            self._prefs["sizeExeLocation"].get(),
-            self._prefs["nmExeLocation"].get(),
-            path
-        )
-
-        #self._mainWindow.setMessage(message)
-
-        self._mainWindow.updateObjectFile(objectFile)
+        try:
+            objectFile = ObjectFile(
+                self._prefs["sizeExeLocation"].get(),
+                self._prefs["nmExeLocation"].get(),
+                path
+            )
+        except ParseError as e:
+            self._mainWindow.setMessage(e.message)
+        else:
+            self._mainWindow.updateObjectFile(objectFile)
 
     def _onPrefsModelChanged(self, prefs):
         prefs = self._prefs
