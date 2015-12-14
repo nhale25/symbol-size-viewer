@@ -54,7 +54,7 @@ class SymbolSizeViewer(object):
     def _onObjectFileChanged(self, path, stillExists):
         if not stillExists:
             #Input file has been deleted, don't clear out the data, nobody wants that
-            self._mainWindow.setMessage(objectFile.path + " not found")
+            self._mainWindow.setMessage(path + " not found")
             return
 
         objectFile = ObjectFile(

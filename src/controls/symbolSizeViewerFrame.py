@@ -82,9 +82,11 @@ class SymbolSizeViewerFrame(wx.Frame):
 
         notebook = wx.Notebook(self)
         self.summary = ObjectFileSummary(notebook)
-        self.symbolList = SymbolList(notebook)
+        self.flashSymbolList = SymbolList(notebook)
+        self.ramSymbolList = SymbolList(notebook)
         notebook.AddPage(self.summary, "Summary")
-        notebook.AddPage(self.symbolList, "Symbols")
+        notebook.AddPage(self.flashSymbolList, "Flash Symbols")
+        notebook.AddPage(self.ramSymbolList, "RAM Symbols")
 
         self.txt_codeSize = wx.TextCtrl(self, size=(80, -1))
         self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
@@ -127,12 +129,14 @@ class SymbolSizeViewerFrame(wx.Frame):
         codeSymbols = [sym for sym in symbols if sym.basicType is CodeSymbol]
         initDataSymbols = [sym for sym in symbols if sym.basicType is InitDataSymbol]
         roDataSymbols = [sym for sym in symbols if sym.basicType is RoDataSymbol]
+        uninitDataSymbols = [sym for sym in symbols if sym.basicType is UninitDataSymbol]
 
         roDataSize = sum([sym.size for sym in roDataSymbols])
         codeSize = objectFile.textSize - roDataSize
 
         self.summary.updateInfo(objectFile.textSize, roDataSize, objectFile.dataSize, objectFile.bssSize)
-        self.symbolList.updateInfo(codeSymbols, initDataSymbols, roDataSymbols)
+        self.flashSymbolList.updateSymbols(codeSymbols + initDataSymbols + roDataSymbols)
+        self.ramSymbolList.updateSymbols(initDataSymbols + uninitDataSymbols)
         self.totalCode.setCategoryValues(codeSize, roDataSize, objectFile.dataSize)
         self.totalMemory.setCategoryValues(objectFile.dataSize, objectFile.bssSize)
 
@@ -153,7 +157,8 @@ class SymbolSizeViewerFrame(wx.Frame):
     def setNumberFormatter(self, formatter):
         self.totalCode.setNumberFormatter(formatter)
         self.totalMemory.setNumberFormatter(formatter)
-        self.symbolList.setNumberFormatter(formatter)
+        self.flashSymbolList.setNumberFormatter(formatter)
+        self.ramSymbolList.setNumberFormatter(formatter)
         self.summary.setNumberFormatter(formatter)
 
     def setNumberFormatProperty(self, value):

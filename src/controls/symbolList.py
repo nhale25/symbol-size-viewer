@@ -3,9 +3,7 @@ import wx
 import wx.lib.agw.ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl as listmix
 from wx.lib.agw.pygauge import PyGauge
-
-from graphs import StackedPyGaugeWithText
-from controls import defaultColors
+from contextlib import contextmanager
 
 
 class SymbolList(wx.Panel):
@@ -32,23 +30,17 @@ class SymbolList(wx.Panel):
     def setNumberFormatter(self, formatter):
         self._list.setNumberFormatter(formatter)
 
-    def updateInfo(self, *args):
+    def updateSymbols(self, symbols):
         self._list.Hide()
         self._loading.Show()
         self.Layout()
-        
+
         wx.CallAfter(lambda:
-            self._list.updateInfo(self._updateDone, *args)
+            self._list.updateSymbols(self._updateDone, symbols)
         )
 
 
 class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listmix.ColumnSorterMixin):
-    symbolTypeNames = {
-        "code":"Code",
-        "initData":"Initialised data",
-        "roData":"Read-only data",
-        }
-
     COL_NAME = 0
     COL_TYPE = 1
     COL_SIZE = 2
@@ -76,6 +68,15 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
             )
         #end hack
 
+    @contextmanager
+    def _maintainSort(self):
+        previousSort = self.GetSortState()
+        if previousSort == (-1, 0): #Hasn't been sorted yet
+            previousSort = (self.COL_SIZE, False)
+
+        yield
+        self.SortListItems(*previousSort)
+
     def setNumberFormatter(self, formatter):
         self._numberFormatter = formatter
 
@@ -84,48 +85,37 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
             sizeStr = self._numberFormatter(obj.size)
             self.SetStringItem(pos, self.COL_SIZE, sizeStr)
 
-    def _addRow(self, symbol, largestSymbolSize, symbolType):
+    def _addRow(self, symbol, largestSymbolSize):
         pos = self.InsertStringItem(self.GetItemCount(), symbol.name)
         self.SetItemData(pos, symbol)
-        self.itemDataMap[symbol] = (symbol.name.lower(), symbolType, symbol.size, symbol.size)
+        self.itemDataMap[symbol] = (symbol.name.lower(), symbol.basicType.description, symbol.size, symbol.size)
 
-        typeStr = self.symbolTypeNames[symbolType]
-        self.SetStringItem(pos, self.COL_TYPE, typeStr)
+        self.SetStringItem(pos, self.COL_TYPE, symbol.basicType.description)
 
         sizeStr = self._numberFormatter(symbol.size)
         self.SetStringItem(pos, self.COL_SIZE, sizeStr)
 
         gauge = PyGauge(self, wx.ID_ANY, style=wx.GA_HORIZONTAL | wx.SUNKEN_BORDER, size=(-1, 20))
         gauge.SetRange(largestSymbolSize)
-        gauge.SetBarColor(defaultColors[symbolType])
+        gauge.SetBarColor(symbol.basicType.color)
         gauge.SetValue(symbol.size)
         self.SetItemWindow(pos, col=self.COL_GRAPH, wnd=gauge, expand=True)
 
-    def updateInfo(self, updateDoneCallback, codeSymbols, initDataSymbols, roDataSymbols):
-        previousSort = self.GetSortState()
+    def updateSymbols(self, updateDoneCallback, symbols):
+        with self._maintainSort():
 
-        #workaround for bug in certain versions of UltimateListCtrl when calling DeleteAllItems()
-        for item in self._mainWin._itemWithWindow[:]:
-            if item.GetWindow():
-                self._mainWin.DeleteItemWindow(item)
-        #end of workaround
+            #workaround for bug in certain versions of UltimateListCtrl when calling DeleteAllItems()
+            for item in self._mainWin._itemWithWindow[:]:
+                if item.GetWindow():
+                    self._mainWin.DeleteItemWindow(item)
+            #end of workaround
 
-        self.itemDataMap = {}
-        self.DeleteAllItems()
+            self.itemDataMap = {}
+            self.DeleteAllItems()
 
-        if codeSymbols or initDataSymbols or roDataSymbols:
-            largest = max([obj.size for obj in codeSymbols + initDataSymbols + roDataSymbols])
-            for sym in codeSymbols:
-                self._addRow(sym, largest, "code")
-            for sym in initDataSymbols:
-                self._addRow(sym, largest, "initData")
-            for sym in roDataSymbols:
-                self._addRow(sym, largest, "roData")
-
-            if previousSort == (-1, 0): #Hasn't been sorted yet
-                previousSort = (self.COL_SIZE, False)
-            self.SortListItems(*previousSort)
-
+            largest = max([obj.size for obj in symbols])
+            for sym in symbols:
+                self._addRow(sym, largest)
         updateDoneCallback()
 
     #Required by listmix.ColumnSorterMixin
