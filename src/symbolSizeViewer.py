@@ -1,13 +1,15 @@
-from models import binUtilsParsers
+from models import binUtilsOutputFiles
 import locale
 import os.path
 import wx
 
 from controls.prefsDialog import PrefsDialog
 from controls.symbolSizeViewerFrame import SymbolSizeViewerFrame
-from models.objectFileModel import ObjectFileModel
+
+from models.objectFile import ObjectFile
+from models.fileWatcher import FileWatcher
 from models.prefsModel import PrefsModel
-from models.binUtilsParsers import ParseError
+from models.binUtilsOutputFiles import ParseError
 from guiHelpers import Event, getRelativePath
 
 class SymbolSizeViewer(object):
@@ -28,8 +30,7 @@ class SymbolSizeViewer(object):
         self._prefs = PrefsModel()
         self._prefs.prefsChangedEvent.addHandler(self._onPrefsModelChanged)
 
-        self._objectFile = ObjectFileModel()
-        self._objectFile.fileChangedEvent.addHandler(lambda x, y: wx.CallAfter(self._onObjectFileChanged, x, y))
+        self._fileWatcher = FileWatcher(lambda *args: wx.CallAfter(self._onObjectFileChanged, *args))
 
         self._mainWindow = SymbolSizeViewerFrame()
         self._mainWindow.openFileEvent.addHandler(self._onOpenObjectFile)
@@ -46,31 +47,25 @@ class SymbolSizeViewer(object):
         self._mainWindow.Show()
 
     def _onOpenObjectFile(self, path):
+        self._fileWatcher.setFileToWatch(path)
         self._prefs.set("lastOpenedDirectory", os.path.dirname(path))
-        self._objectFile.setFile(path)
+        self._onObjectFileChanged(path, True)
 
-    def _onObjectFileChanged(self, objectFile, stillExists):
+    def _onObjectFileChanged(self, path, stillExists):
         if not stillExists:
             #Input file has been deleted, don't clear out the data, nobody wants that
             self._mainWindow.setMessage(objectFile.path + " not found")
             return
 
-        try:
-            sizeInfo = objectFile.getSizeInfo()
-            symbolInfo = objectFile.getSymbolInfo()
-        except ParseError as e:
-            message = str(e)
-            sizeInfo = None
-            symbolInfo = []
-        else:
-            message = None
+        objectFile = ObjectFile(
+            self._prefs["sizeExeLocation"].get(),
+            self._prefs["nmExeLocation"].get(),
+            path
+        )
 
-        codeSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "t"]
-        initDataSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "gd"]
-        roDataSymbols = [sym for sym in symbolInfo if sym.type.code.lower() in "r"]
+        #self._mainWindow.setMessage(message)
 
-        self._mainWindow.setMessage(message)
-        self._mainWindow.updateObjectFile(sizeInfo, codeSymbols, initDataSymbols, roDataSymbols, objectFile.path)
+        self._mainWindow.updateObjectFile(objectFile)
 
     def _onPrefsModelChanged(self, prefs):
         prefs = self._prefs
@@ -85,9 +80,10 @@ class SymbolSizeViewer(object):
         self._mainWindow.setLastOpenedDirectory(prefs["lastOpenedDirectory"].get())
         self._mainWindow.showColorKey(prefs["showColorKey"].get())
 
-        self._objectFile.setNmExeLocation(prefs["nmExeLocation"].get())
-        self._objectFile.setSizeExeLocation(prefs["sizeExeLocation"].get())
-        self._objectFile.setWatchFileFileForChanges(prefs["watchFileForChanges"].get())
+        if prefs["watchFileForChanges"].get():
+            self._fileWatcher.startWatching()
+        else:
+            self._fileWatcher.stopWatching()
 
     def _onOpenPrefsDialog(self):
         prefsDialog = PrefsDialog(self._prefs.getAll())
@@ -101,7 +97,7 @@ class SymbolSizeViewer(object):
 
     def _onAppClosing(self):
         self._prefs.saveToFile(self._prefsFileLocation)
-        self._objectFile.setWatchFileFileForChanges(False)
+        self._fileWatcher.stopWatching()
 
 if __name__ == "__main__":
     import sys

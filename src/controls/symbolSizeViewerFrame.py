@@ -9,6 +9,7 @@ from colorKey import ColorKey
 from objectFileSummary import ObjectFileSummary
 from messagePanel import MessagePanel
 from graphs import CodeTotalGraph, MemoryTotalGraph
+from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
 
 def unknownBaseStringToInt(s):
@@ -121,25 +122,28 @@ class SymbolSizeViewerFrame(wx.Frame):
             path = openFileDialog.GetPath()
             self.openFileEvent(path)
 
-    def updateObjectFile(self, sizeInfo, codeSymbols, initDataSymbols, roDataSymbols, path):
+    def updateObjectFile(self, objectFile):
+        symbols = objectFile.getSymbols()
+        codeSymbols = [sym for sym in symbols if sym.basicType is CodeSymbol]
+        initDataSymbols = [sym for sym in symbols if sym.basicType is InitDataSymbol]
+        roDataSymbols = [sym for sym in symbols if sym.basicType is RoDataSymbol]
+
         roDataSize = sum([sym.size for sym in roDataSymbols])
-        self.summary.updateInfo(sizeInfo, codeSymbols, roDataSymbols)
+        codeSize = objectFile.textSize - roDataSize
+
+        self.summary.updateInfo(objectFile.textSize, roDataSize, objectFile.dataSize, objectFile.bssSize)
         self.symbolList.updateInfo(codeSymbols, initDataSymbols, roDataSymbols)
+        self.totalCode.setCategoryValues(codeSize, roDataSize, objectFile.dataSize)
+        self.totalMemory.setCategoryValues(objectFile.dataSize, objectFile.bssSize)
 
-        if sizeInfo is not None:
-            code = sizeInfo.text - roDataSize
-            self.totalCode.setCategoryValues(code, roDataSize, sizeInfo.data)
-            self.totalMemory.setCategoryValues(sizeInfo.data, sizeInfo.bss)
-        else:
-            self.totalCode.setCategoryValues()
-            self.totalMemory.setCategoryValues()
-
+        #update status bar
         now = datetime.datetime.now()
         lastLoadStr = now.strftime("Loaded at %H:%M:%S")
-        self._statusBar.SetStatusText(path, 0)
+        self._statusBar.SetStatusText(objectFile.path, 0)
         self._statusBar.SetStatusText(lastLoadStr, 1)
 
-        fileName = os.path.basename(path)
+        #update window title
+        fileName = os.path.basename(objectFile.path)
         appName = wx.GetApp().GetAppName()
         self.SetTitle("%s - %s"% (fileName, appName))
 

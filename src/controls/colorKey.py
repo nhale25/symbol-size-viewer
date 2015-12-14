@@ -1,6 +1,6 @@
 
 import wx
-from controls import defaultColors
+from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
 class ColorKey(wx.Panel):
     def __init__(self, *args, **kwargs):
@@ -8,10 +8,8 @@ class ColorKey(wx.Panel):
         hBox = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(hBox)
 
-        self._addColor(hBox, "Code", defaultColors["code"])
-        self._addColor(hBox, "Read-only data", defaultColors["roData"])
-        self._addColor(hBox, "Initialized data", defaultColors["initData"])
-        self._addColor(hBox, "Uninitialized data", defaultColors["uninitData"])
+        for symbolType in (CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol):
+            self._addColor(hBox, symbolType.description, symbolType.color)
 
     def _addColor(self, sizer, name, color):
         panel = wx.Panel(self, size=(14, 14), style=wx.SIMPLE_BORDER)

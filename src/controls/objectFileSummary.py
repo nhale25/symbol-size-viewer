@@ -1,6 +1,6 @@
 
 import wx
-from controls import defaultColors
+from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
 class ObjectFileSummary(wx.Panel):
     def __init__(self, *args, **kwargs):
@@ -34,13 +34,13 @@ class ObjectFileSummary(wx.Panel):
             "ramTotal": wx.StaticText(centeredPanel, label=""),
             }
 
-        self._addRow(grid, centeredPanel, defaultColors["code"], "Code", self._widgets["code"])
-        self._addRow(grid, centeredPanel, defaultColors["roData"], "Read-only data", self._widgets["roData"])
-        self._addRow(grid, centeredPanel, defaultColors["initData"], "Initialised data", self._widgets["initData"])
+        self._addRow(grid, centeredPanel, CodeSymbol.color, "Code", self._widgets["code"])
+        self._addRow(grid, centeredPanel, RoDataSymbol.color, "Read-only data", self._widgets["roData"])
+        self._addRow(grid, centeredPanel, InitDataSymbol.color, "Initialised data", self._widgets["initData"])
         self._addRow(grid, centeredPanel, None, "Total", self._widgets["programTotal"])
         self._addRow(grid, centeredPanel, None, "", (0,0))
-        self._addRow(grid, centeredPanel, defaultColors["initData"], "Initialised data", self._widgets["initData2"])
-        self._addRow(grid, centeredPanel, defaultColors["uninitData"], "Uninitialised data", self._widgets["uninitData"])
+        self._addRow(grid, centeredPanel, InitDataSymbol.color, "Initialised data", self._widgets["initData2"])
+        self._addRow(grid, centeredPanel, UninitDataSymbol.color, "Uninitialised data", self._widgets["uninitData"])
         self._addRow(grid, centeredPanel, None, "Total", self._widgets["ramTotal"])
 
         centeredPanel.SetSizer(grid)
@@ -76,21 +76,17 @@ class ObjectFileSummary(wx.Panel):
         self._numberFormatter = formatter
         self._updateWidgets()
 
-    def updateInfo(self, sizeInfo, codeSymbols, roDataSymbols):
-        if sizeInfo is None:
-            self.clearInfo()
-            return
+    def updateInfo(self, textSize, roDataSize, dataSize, bssSize):
+        codeSize = textSize - roDataSize
 
-        roDataSum = sum([sym.size for sym in roDataSymbols])
+        self._values["code"] = codeSize
+        self._values["roData"] = roDataSize
+        self._values["initData"] = dataSize
+        self._values["programTotal"] = textSize + dataSize
 
-        self._values["code"] = sizeInfo.text - roDataSum
-        self._values["roData"] = roDataSum
-        self._values["initData"] = sizeInfo.data
-        self._values["programTotal"] = sizeInfo.text + sizeInfo.data
-
-        self._values["initData2"] = sizeInfo.data
-        self._values["uninitData"] = sizeInfo.bss
-        self._values["ramTotal"] = sizeInfo.data + sizeInfo.bss
+        self._values["initData2"] = dataSize
+        self._values["uninitData"] = bssSize
+        self._values["ramTotal"] = dataSize + bssSize
 
         self._dataValid = True
         self._updateWidgets()

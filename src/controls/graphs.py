@@ -1,6 +1,7 @@
 import wx
 from wx.lib.agw.pygauge import PyGauge
-from controls import defaultColors
+
+from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
 class StackedPyGaugeWithText(PyGauge):
     def __init__(self, barNames, *args, **kwargs):
@@ -59,7 +60,7 @@ class StackedPyGaugeWithText(PyGauge):
 class TotalGraph(StackedPyGaugeWithText):
     _label = ""
     _categories = ()
-    _overflowColor = defaultColors["flashFull"]
+    _overflowColor = "#cc0000"
 
     def __init__(self, *args, **kwargs):
         kwargs["style"] = kwargs.get("style", 0) | wx.SUNKEN_BORDER
@@ -134,15 +135,15 @@ class TotalGraph(StackedPyGaugeWithText):
 class CodeTotalGraph(TotalGraph):
     _label = "Code size: "
     _categories = (
-        ("text", defaultColors["code"]),
-        ("roData", defaultColors["roData"]),
-        ("initData", defaultColors["initData"]),
+        ("text", CodeSymbol.color),
+        ("roData", RoDataSymbol.color),
+        ("initData", InitDataSymbol.color),
     )
 
 
 class MemoryTotalGraph(TotalGraph):
     _label = "Memory used: "
     _categories = (
-        ("initData", defaultColors["initData"]),
-        ("uninitData", defaultColors["uninitData"]),
+        ("initData", InitDataSymbol.color),
+        ("uninitData", UninitDataSymbol.color),
     )

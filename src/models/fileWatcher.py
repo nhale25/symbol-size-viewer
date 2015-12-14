@@ -3,8 +3,8 @@ import os.path
 import watchdog.observers
 from watchdog.events import FileSystemEventHandler
 
-from binUtilsParsers import NmParser, SizeParser
 from guiHelpers import Event
+
 
 class FileWatcher(object):
     class MyEventHandler(FileSystemEventHandler):
@@ -49,41 +49,3 @@ class FileWatcher(object):
             if self._path:
                 handler = FileWatcher.MyEventHandler(self._callback, self._path)
                 self._fsWatcher.schedule(handler, os.path.dirname(self._path))
-
-class ObjectFileModel(object):
-    def __init__(self, sizeExeLoc=None, nmExeLoc=None):
-        self.fileChangedEvent = Event()
-        self.path = None
-
-        self._sizeParser = SizeParser(sizeExeLoc)
-        self._nmParser = NmParser(nmExeLoc)
-        self._fileWatcher = FileWatcher(self._fileWatcherCallback)
-
-    def setSizeExeLocation(self, loc):
-        self._sizeParser.setExePath(loc)
-
-    def setNmExeLocation(self, loc):
-        self._nmParser.setExePath(loc)
-
-    def getSizeInfo(self):
-        return self._sizeParser.parseOutput(self.path)
-
-    def getSymbolInfo(self):
-        return self._nmParser.parseOutput(self.path)
-
-    def setFile(self, path):
-        if self.path == path:
-            return
-
-        self.path = path
-        self._fileWatcher.setFileToWatch(path)
-        self.fileChangedEvent(self, os.path.isfile(path))
-
-    def setWatchFileFileForChanges(self, watchForChanges):
-        if watchForChanges:
-            self._fileWatcher.startWatching()
-        else:
-            self._fileWatcher.stopWatching()
-
-    def _fileWatcherCallback(self, path, stillExists):
-        self.fileChangedEvent(self, stillExists)
