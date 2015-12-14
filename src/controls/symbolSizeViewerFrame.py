@@ -75,12 +75,14 @@ class SymbolSizeViewerFrame(wx.Frame):
         self._statusBar = self.CreateStatusBar(2)
         self._statusBar.SetStatusWidths([-1, 200])
 
-        self.colorKey = ColorKey(self)
-        self.totalCode = CodeTotalGraph(self)
-        self.totalMemory = MemoryTotalGraph(self)
-        self.message = MessagePanel(None, self)
+        panel = wx.Panel(self)
 
-        notebook = wx.Notebook(self)
+        self.colorKey = ColorKey(panel)
+        self.totalCode = CodeTotalGraph(panel)
+        self.totalMemory = MemoryTotalGraph(panel)
+        self.message = MessagePanel(None, panel)
+
+        notebook = wx.Notebook(panel)
         self.summary = ObjectFileSummary(notebook)
         self.flashSymbolList = SymbolList(notebook)
         self.ramSymbolList = SymbolList(notebook)
@@ -88,18 +90,20 @@ class SymbolSizeViewerFrame(wx.Frame):
         notebook.AddPage(self.flashSymbolList, "Flash Symbols")
         notebook.AddPage(self.ramSymbolList, "RAM Symbols")
 
-        self.txt_codeSize = wx.TextCtrl(self, size=(80, -1))
+        self.txt_codeSize = wx.TextCtrl(panel, size=(80, -1))
         self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
             {"totalFlashSize": self.txt_codeSize.GetValue()}), self.txt_codeSize)
 
-        self.txt_memorySize = wx.TextCtrl(self, size=(80, -1))
+        self.txt_memorySize = wx.TextCtrl(panel, size=(80, -1))
         self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
             {"totalMemorySize": self.txt_memorySize.GetValue()}), self.txt_memorySize)
 
         hBox = wx.BoxSizer(wx.HORIZONTAL)
         hBox.AddMany([
-            wx.StaticText(self, label="Code size limit:"), self.txt_codeSize,
-            wx.StaticText(self, label="Memory size limit:"), self.txt_memorySize,
+            wx.StaticText(panel, label="Code size limit: "), self.txt_codeSize,
+            ((10,1), 0), #spacer
+            wx.StaticText(panel, label="Memory size limit: "), self.txt_memorySize,
+            ((10,1), 0), #spacer
             ((1,1), 1), #expanding spacer
             self.colorKey,
         ])
@@ -110,7 +114,11 @@ class SymbolSizeViewerFrame(wx.Frame):
         vBox.Add(self.totalMemory, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(self.message, 0, wx.EXPAND | wx.ALL, 4)
         vBox.Add(notebook, 1, wx.EXPAND | wx.ALL, 4)
-        self.SetSizerAndFit(vBox)
+        
+        panel.SetSizerAndFit(vBox)
+        self.Fit()
+        vBox.SetSizeHints(self)
+        
 
     def _onClose(self, event):
         self.Destroy()

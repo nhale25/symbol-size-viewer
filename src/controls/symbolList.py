@@ -56,13 +56,13 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
         self._numberFormatter = lambda x: "%d"% x
 
         self.InsertColumn(self.COL_NAME, "Symbol name", width=150)
-        self.InsertColumn(self.COL_TYPE, "Type", width=100)
+        self.InsertColumn(self.COL_TYPE, "Type", width=110)
         self.InsertColumn(self.COL_SIZE, "Size", width=50)
         self.InsertColumn(self.COL_GRAPH, "")
         self.setResizeColumn(self.COL_GRAPH + 1)
 
         #hack: Make self redraw properly when on a tabbed notebook with certain wxPython versions.
-        self.GetParent().Bind(
+        self.GetParent().GetParent().Bind(
             wx.EVT_NOTEBOOK_PAGE_CHANGED,
             lambda e: wx.CallAfter(self.SendSizeEvent) and e.Skip()
             )
