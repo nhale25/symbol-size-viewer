@@ -1,4 +1,4 @@
-from models import binUtilsOutputFiles
+
 import locale
 import os.path
 import wx
@@ -6,12 +6,12 @@ import wx
 from controls.prefsDialog import PrefsDialog
 from controls.symbolSizeViewerFrame import SymbolSizeViewerFrame
 
-from models.binUtilsOutputFiles import ParseError
 from models.objectFile import ObjectFile
 from models.fileWatcher import FileWatcher
 from models.prefsModel import PrefsModel
 from models.binUtilsOutputFiles import ParseError
 from guiHelpers import Event, getRelativePath
+
 
 class SymbolSizeViewer(object):
     numberFormatters = {
@@ -57,6 +57,7 @@ class SymbolSizeViewer(object):
             #Input file has been deleted, don't clear out the data, nobody wants that
             self._mainWindow.setMessage(path + " not found")
             return
+
         try:
             objectFile = ObjectFile(
                 self._prefs["sizeExeLocation"].get(),
@@ -66,6 +67,7 @@ class SymbolSizeViewer(object):
         except ParseError as e:
             self._mainWindow.setMessage(e.message)
         else:
+            self._mainWindow.setMessage(None)
             self._mainWindow.updateObjectFile(objectFile)
 
     def _onPrefsModelChanged(self, prefs):
@@ -99,6 +101,7 @@ class SymbolSizeViewer(object):
     def _onAppClosing(self):
         self._prefs.saveToFile(self._prefsFileLocation)
         self._fileWatcher.stopWatching()
+
 
 if __name__ == "__main__":
     import sys

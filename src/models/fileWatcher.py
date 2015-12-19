@@ -3,8 +3,6 @@ import os.path
 import watchdog.observers
 from watchdog.events import FileSystemEventHandler
 
-from guiHelpers import Event
-
 
 class FileWatcher(object):
     class MyEventHandler(FileSystemEventHandler):
@@ -20,32 +18,37 @@ class FileWatcher(object):
 
     def __init__(self, callback):
         self._callback = callback
+        self._watchedFilePath = None
         self._fsWatcher = None
-        self._path = None
+        self._shouldWatch = False
 
-    def startWatching(self):
-        if not self._fsWatcher:
+    def _startWatching(self):
+        if not self._fsWatcher and self._watchedFilePath:
             self._fsWatcher = watchdog.observers.Observer()
             self._fsWatcher.start()
-            self._tryStartWatchingFile()
+            self._fsWatcher.unschedule_all()
+            handler = FileWatcher.MyEventHandler(self._callback, self._watchedFilePath)
+            self._fsWatcher.schedule(handler, os.path.dirname(self._watchedFilePath))
 
-    def stopWatching(self):
+    def _stopWatching(self):
         if self._fsWatcher:
             self._fsWatcher.stop()
             self._fsWatcher.join()
             self._fsWatcher = None
 
     def setFileToWatch(self, path):
-        if self._path == path:
+        if self._watchedFilePath == path:
             return
 
-        self._path = path
-        self._tryStartWatchingFile()
+        self._stopWatching()
+        self._watchedFilePath = path
+        if self._shouldWatch:
+            self._startWatching()
 
-    def _tryStartWatchingFile(self):
-        if self._fsWatcher:
-            self._fsWatcher.unschedule_all()
+    def startWatching(self):
+        self._shouldWatch = True
+        self._startWatching()
 
-            if self._path:
-                handler = FileWatcher.MyEventHandler(self._callback, self._path)
-                self._fsWatcher.schedule(handler, os.path.dirname(self._path))
+    def stopWatching(self):
+        self._shouldWatch = False
+        self._stopWatching()
