@@ -52,7 +52,7 @@ class SymbolSizeViewerFrame(wx.Frame):
         #view menu
         numberFormatMenu = wx.Menu()
         self.menuItem_decimal = numberFormatMenu.Append(wx.ID_ANY, "Decimal", kind=wx.ITEM_RADIO)
-        self.menuItem_hex = numberFormatMenu.Append(wx.ID_ANY, "Hex", kind=wx.ITEM_RADIO)
+        self.menuItem_hex = numberFormatMenu.Append(wx.ID_ANY, "Hexadecimal", kind=wx.ITEM_RADIO)
         self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"numberFormat":"decimal"}), self.menuItem_decimal)
         self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"numberFormat":"hex"}), self.menuItem_hex)
 
