@@ -61,13 +61,6 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
         self.InsertColumn(self.COL_GRAPH, "")
         self.setResizeColumn(self.COL_GRAPH + 1)
 
-        #hack: Make self redraw properly when on a tabbed notebook with certain wxPython versions.
-        self.GetParent().GetParent().Bind(
-            wx.EVT_NOTEBOOK_PAGE_CHANGED,
-            lambda e: wx.CallAfter(self.SendSizeEvent) and e.Skip()
-            )
-        #end hack
-
     @contextmanager
     def _maintainSort(self):
         previousSort = self.GetSortState()

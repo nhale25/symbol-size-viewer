@@ -90,6 +90,13 @@ class SymbolSizeViewerFrame(wx.Frame):
         notebook.AddPage(self.flashSymbolList, "Flash Symbols")
         notebook.AddPage(self.ramSymbolList, "RAM Symbols")
 
+        #hack: make sure symbol lists get redrawn properly when selected tab changes on certain wxpython versions
+        notebook.Bind(
+            wx.EVT_NOTEBOOK_PAGE_CHANGED,
+            lambda e: [c.SendSizeEvent() for c in notebook.GetChildren()]
+        )
+        #end hack
+
         self.txt_codeSize = wx.TextCtrl(panel, size=(80, -1))
         self.Bind(wx.EVT_TEXT, lambda e: self.prefsChangedEvent(
             {"totalFlashSize": self.txt_codeSize.GetValue()}), self.txt_codeSize)
