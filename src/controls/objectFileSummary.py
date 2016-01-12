@@ -1,4 +1,6 @@
 
+# -*- coding: utf-8 -*-
+
 import wx
 from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
@@ -42,7 +44,7 @@ class SymbolSummaryPanel(wx.Panel):
     def _updateWidgets(self):
         for key, widget in self._valueWidgets.items():
             value = self._values.get(key)
-            valueStr = self._numberFormatter(value) if value is not None else ""
+            valueStr = self._numberFormatter(value) if value is not None else "–"
             widget.SetLabel(valueStr)
         self.Layout()
         self.GetSizer().Fit(self)
