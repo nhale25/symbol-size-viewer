@@ -107,12 +107,14 @@ class SymbolSizeViewerFrame(wx.Frame):
 
         hBox = wx.BoxSizer(wx.HORIZONTAL)
         hBox.AddMany([
-            wx.StaticText(panel, label="Code size limit: "), self.txt_codeSize,
+            (wx.StaticText(panel, label="Flash size: "), 0, wx.ALIGN_CENTER_VERTICAL),
+            (self.txt_codeSize, 0, wx.ALIGN_CENTER_VERTICAL),
             ((10,1), 0), #spacer
-            wx.StaticText(panel, label="Memory size limit: "), self.txt_memorySize,
+            (wx.StaticText(panel, label="RAM size: "), 0, wx.ALIGN_CENTER_VERTICAL),
+            (self.txt_memorySize, 0, wx.ALIGN_CENTER_VERTICAL),
             ((10,1), 0), #spacer
             ((1,1), 1), #expanding spacer
-            self.colorKey,
+            (self.colorKey, 0, wx.ALIGN_CENTER_VERTICAL),
         ])
 
         vBox = wx.BoxSizer(wx.VERTICAL)

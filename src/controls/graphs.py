@@ -133,7 +133,7 @@ class TotalGraph(StackedPyGaugeWithText):
 
 
 class CodeTotalGraph(TotalGraph):
-    _label = "Code size: "
+    _label = "Flash used: "
     _categories = (
         ("text", CodeSymbol.color),
         ("roData", RoDataSymbol.color),
@@ -142,7 +142,7 @@ class CodeTotalGraph(TotalGraph):
 
 
 class MemoryTotalGraph(TotalGraph):
-    _label = "Memory used: "
+    _label = "RAM used: "
     _categories = (
         ("initData", InitDataSymbol.color),
         ("uninitData", UninitDataSymbol.color),
