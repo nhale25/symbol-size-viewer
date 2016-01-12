@@ -2,95 +2,110 @@
 import wx
 from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
-class ObjectFileSummary(wx.Panel):
-    def __init__(self, *args, **kwargs):
+
+class SymbolSummaryPanel(wx.Panel):
+    def __init__(self, numberFormatter, *args, **kwargs):
         wx.Panel.__init__(self, *args, **kwargs)
-        self._numberFormatter = lambda x: "%d"% x
 
-        self._dataValid = False
-        self._values = {
-            "code": 0,
-            "roData": 0,
-            "initData": 0,
-            "initData2": 0,
-            "uninitData": 0,
-            "programTotal": 0,
-            "ramTotal": 0,
-            }
+        self._numberFormatter = numberFormatter
+        self._valueWidgets = {}
+        self._values = {}
 
-        self._initUi()
+        self._gridSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=10)
+        box = wx.StaticBox(self, label=self._title)
+        boxSizer = wx.StaticBoxSizer(box)
+        boxSizer.Add(self._gridSizer, 0, wx.ALL, 10)
 
-    def _initUi(self):
-        centeredPanel = wx.Panel(self)
-        grid = wx.FlexGridSizer(cols=3, hgap=5, vgap=10)
-        self._grid = grid
-        self._widgets = {
-            "code": wx.StaticText(centeredPanel, label=""),
-            "roData": wx.StaticText(centeredPanel, label=""),
-            "initData": wx.StaticText(centeredPanel, label=""),
-            "initData2": wx.StaticText(centeredPanel, label=""),
-            "uninitData": wx.StaticText(centeredPanel, label=""),
-            "programTotal": wx.StaticText(centeredPanel, label=""),
-            "ramTotal": wx.StaticText(centeredPanel, label=""),
-            }
+        for symbolType in self._symbols:
+            self._addRow(box, symbolType, symbolType.description, symbolType.color)
+        self._addRow(box, "total", "Total", None)
 
-        self._addRow(grid, centeredPanel, CodeSymbol.color, "Code", self._widgets["code"])
-        self._addRow(grid, centeredPanel, RoDataSymbol.color, "Read-only data", self._widgets["roData"])
-        self._addRow(grid, centeredPanel, InitDataSymbol.color, "Initialised data", self._widgets["initData"])
-        self._addRow(grid, centeredPanel, None, "Total", self._widgets["programTotal"])
-        self._addRow(grid, centeredPanel, None, "", (0,0))
-        self._addRow(grid, centeredPanel, InitDataSymbol.color, "Initialised data", self._widgets["initData2"])
-        self._addRow(grid, centeredPanel, UninitDataSymbol.color, "Uninitialised data", self._widgets["uninitData"])
-        self._addRow(grid, centeredPanel, None, "Total", self._widgets["ramTotal"])
+        self.SetSizer(boxSizer)
+        boxSizer.Fit(self)
 
-        centeredPanel.SetSizer(grid)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.AddStretchSpacer(1)
-        sizer.Add(centeredPanel, 0, wx.ALIGN_CENTER)
-        sizer.AddStretchSpacer(1)
-        self.SetSizer(sizer)
-
-    def _addRow(self, grid, parent, color, label, valueWidget):
+    def _addRow(self, parent, widgetKey, name, color):
         if color is not None:
             colorPanel = wx.Panel(parent, size=(14, 14), style=wx.SIMPLE_BORDER)
             colorPanel.SetBackgroundColour(color)
         else:
             colorPanel = (0, 0)
 
-        grid.AddMany([
-            (wx.StaticText(parent, label=label), 0, wx.ALIGN_RIGHT),
+        valueWidget = wx.StaticText(parent, label="")
+        self._valueWidgets[widgetKey] = valueWidget
+
+        self._gridSizer.AddMany([
+            (wx.StaticText(parent, label=name), 0, wx.ALIGN_RIGHT),
             (colorPanel, 0, wx.RIGHT, 20),
             (valueWidget, 0, wx.ALIGN_RIGHT),
-            ])
+        ])
 
     def _updateWidgets(self):
-        for name, widget in self._widgets.items():
-            if self._dataValid:
-                newValue = self._numberFormatter(self._values[name])
-            else:
-                newValue = ""
-            widget.SetLabel(newValue)
+        for key, widget in self._valueWidgets.items():
+            value = self._values.get(key)
+            valueStr = self._numberFormatter(value) if value is not None else ""
+            widget.SetLabel(valueStr)
         self.Layout()
+        self.GetSizer().Fit(self)
+
+    def updateData(self, *args):
+        total = 0
+        for symbolType, value in zip(self._symbols, args):
+            if value is not None:
+                total += value
+            self._values[symbolType] = value
+        self._values["total"] = total
+
+        self._updateWidgets()
 
     def setNumberFormatter(self, formatter):
         self._numberFormatter = formatter
         self._updateWidgets()
 
+
+class FlashSummaryPanel(SymbolSummaryPanel):
+    _title = "Flash usage"
+    _symbols = (CodeSymbol, RoDataSymbol, InitDataSymbol)
+
+
+class RamSummaryPanel(SymbolSummaryPanel):
+    _title = "RAM usage"
+    _symbols = (InitDataSymbol, UninitDataSymbol)
+
+
+class ObjectFileSummary(wx.Panel):
+    def __init__(self, *args, **kwargs):
+        wx.Panel.__init__(self, *args, **kwargs)
+        self._numberFormatter = lambda x: "%d"% x
+
+        self._initUi()
+
+    def _initUi(self):
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.AddStretchSpacer(2)
+
+        self._flashUsage = FlashSummaryPanel(self._numberFormatter, self)
+        sizer.Add(self._flashUsage, 0, wx.ALIGN_CENTER | wx.ALL, 20)
+
+        sizer.AddStretchSpacer(1)
+
+        self._ramUsage = RamSummaryPanel(self._numberFormatter, self)
+        sizer.Add(self._ramUsage, 0, wx.ALIGN_CENTER | wx.ALL, 20)
+
+        sizer.AddStretchSpacer(2)
+        self.SetSizer(sizer)
+        sizer.Fit(self)
+
+    def setNumberFormatter(self, formatter):
+        self._numberFormatter = formatter
+        self._flashUsage.setNumberFormatter(formatter)
+        self._ramUsage.setNumberFormatter(formatter)
+
     def updateInfo(self, textSize, roDataSize, dataSize, bssSize):
         codeSize = textSize - roDataSize
 
-        self._values["code"] = codeSize
-        self._values["roData"] = roDataSize
-        self._values["initData"] = dataSize
-        self._values["programTotal"] = textSize + dataSize
-
-        self._values["initData2"] = dataSize
-        self._values["uninitData"] = bssSize
-        self._values["ramTotal"] = dataSize + bssSize
-
-        self._dataValid = True
-        self._updateWidgets()
+        self._flashUsage.updateData(codeSize, roDataSize, dataSize)
+        self._ramUsage.updateData(dataSize, bssSize)
 
     def clearInfo(self):
-        self._dataValid = False
-        self._updateWidgets()
+        self._flashUsage.updateData(0, 0, 0)
+        self._ramUsage.updateData(0, 0)
