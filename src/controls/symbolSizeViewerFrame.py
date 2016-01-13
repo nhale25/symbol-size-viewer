@@ -6,7 +6,7 @@ import wx
 from guiHelpers import Event
 from symbolList import SymbolList
 from colorKey import ColorKey
-from objectFileSummary import ObjectFileSummary
+from SummaryPanel import ObjectFileSummary
 from messagePanel import MessagePanel
 from graphs import CodeTotalGraph, MemoryTotalGraph
 from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol

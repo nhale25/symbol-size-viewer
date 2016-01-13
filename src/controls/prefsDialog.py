@@ -1,4 +1,5 @@
 
+from contextlib import contextmanager
 import wx
 from wx.lib.sized_controls import SizedDialog
 from guiHelpers import Event
@@ -6,23 +7,23 @@ from guiHelpers import Event
 
 class PrefsDialog(SizedDialog):
     def __init__(self, prefs):
-        style = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER
+        style = wx.DEFAULT_DIALOG_STYLE
         SizedDialog.__init__(self, None, title="Preferences", style=style)
 
         panel = self.GetContentsPane()
         panel.SetSizerType("form")
 
-        label = wx.StaticText(panel, label="Location of nm executable:")
-        label.SetSizerProps(valign="center")
-        self.txt_nmExeLoc = wx.TextCtrl(panel, size=(200, -1))
+        self.txt_nmExeLoc = self._addControl(panel,
+            "Location of nm executable:",
+            wx.TextCtrl, size=(200, -1))
 
-        label = wx.StaticText(panel, label="Location of size executable:")
-        label.SetSizerProps(valign="center")
-        self.txt_sizeExeLoc = wx.TextCtrl(panel, size=(200, -1))
+        self.txt_sizeExeLoc = self._addControl(panel,
+            "Location of size executable:",
+            wx.TextCtrl, size=(200, -1))
 
-        label = wx.StaticText(panel, label="Watch input file for changes:")
-        label.SetSizerProps(valign="center")
-        self.chk_autoUpdate = wx.CheckBox(panel)
+        self.chk_autoUpdate = self._addControl(panel,
+            "Watch input file for changes:",
+            wx.CheckBox)
 
         buttons = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
         self.SetButtonSizer(buttons)
@@ -33,6 +34,14 @@ class PrefsDialog(SizedDialog):
         self.chk_autoUpdate.SetValue(prefs["watchFileForChanges"].get())
 
         self.Fit()
+
+    def _addControl(self, parent, caption, widgetType, *widgetArgs, **widgetKwargs):
+        label = wx.StaticText(parent, label=caption)
+        label.SetSizerProps(valign="center")
+
+        widget = widgetType(parent, *widgetArgs, **widgetKwargs)
+        widget.SetSizerProps(expand=True, valign="center")
+        return widget
 
     def getPreferences(self):
         return {

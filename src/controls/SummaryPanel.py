@@ -5,7 +5,7 @@ import wx
 from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
 
-class SymbolSummaryPanel(wx.Panel):
+class SummaryPanel(wx.Panel):
     def __init__(self, numberFormatter, *args, **kwargs):
         wx.Panel.__init__(self, *args, **kwargs)
 
@@ -44,7 +44,7 @@ class SymbolSummaryPanel(wx.Panel):
     def _updateWidgets(self):
         for key, widget in self._valueWidgets.items():
             value = self._values.get(key)
-            valueStr = self._numberFormatter(value) if value is not None else "–"
+            valueStr = self._numberFormatter(value) if value is not None else u"–"
             widget.SetLabel(valueStr)
         self.Layout()
         self.GetSizer().Fit(self)
@@ -64,12 +64,12 @@ class SymbolSummaryPanel(wx.Panel):
         self._updateWidgets()
 
 
-class FlashSummaryPanel(SymbolSummaryPanel):
+class FlashSummaryPanel(SummaryPanel):
     _title = "Flash usage"
     _symbols = (CodeSymbol, RoDataSymbol, InitDataSymbol)
 
 
-class RamSummaryPanel(SymbolSummaryPanel):
+class RamSummaryPanel(SummaryPanel):
     _title = "RAM usage"
     _symbols = (InitDataSymbol, UninitDataSymbol)
 

@@ -25,6 +25,8 @@ class SymbolSizeViewer(object):
     def __init__(self, app, objectFileName=None):
         app.SetAppName("Symbol Size Viewer")
 
+        locale.setlocale(locale.LC_ALL, "")
+
         paths = wx.StandardPaths.Get()
         self._prefsFileLocation = os.path.join(paths.GetUserDataDir(), self.CONFIG_FILENAME)
 
