@@ -15,7 +15,7 @@ from guiHelpers import Event, getRelativePath
 
 class SymbolSizeViewer(object):
     numberFormatters = {
-        "decimal": lambda x: locale.format("%d", x, grouping=True),
+        "decimal": lambda x: locale.format_string("%d", x, grouping=True),
         "hex": lambda x: "0x%x"% x,
         }
 

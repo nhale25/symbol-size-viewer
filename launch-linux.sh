@@ -1,3 +1,3 @@
 #!/bin/sh
 
-python src/symbolSizeViewer.py $@
+python3 src/symbolSizeViewer.py $@

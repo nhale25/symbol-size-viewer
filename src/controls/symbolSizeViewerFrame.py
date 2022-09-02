@@ -4,11 +4,11 @@ import os.path
 import wx
 
 from guiHelpers import Event
-from symbolList import SymbolList
-from colorKey import ColorKey
-from SummaryPanel import ObjectFileSummary
-from messagePanel import MessagePanel
-from graphs import CodeTotalGraph, MemoryTotalGraph
+from .symbolList import SymbolList
+from .colorKey import ColorKey
+from .SummaryPanel import ObjectFileSummary
+from .messagePanel import MessagePanel
+from .graphs import CodeTotalGraph, MemoryTotalGraph
 from models.symbolTypes import CodeSymbol, RoDataSymbol, InitDataSymbol, UninitDataSymbol
 
 
@@ -57,7 +57,7 @@ class SymbolSizeViewerFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"numberFormat":"hex"}), self.menuItem_hex)
 
         viewMenu = wx.Menu()
-        viewMenu.AppendMenu(wx.ID_ANY, "Number format", numberFormatMenu)
+        viewMenu.Append(wx.ID_ANY, "Number format", numberFormatMenu)
         self.menuItem_showKey = viewMenu.Append(wx.ID_ANY, "Show colour key", kind=wx.ITEM_CHECK)
         self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"showColorKey":self.menuItem_showKey.IsChecked()}), self.menuItem_showKey)
 

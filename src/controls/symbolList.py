@@ -3,7 +3,6 @@ import wx
 import wx.lib.agw.ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl as listmix
 from wx.lib.agw.pygauge import PyGauge
-from contextlib import contextmanager
 
 
 class SymbolList(wx.Panel):
@@ -61,15 +60,6 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
         self.InsertColumn(self.COL_GRAPH, "")
         self.setResizeColumn(self.COL_GRAPH + 1)
 
-    @contextmanager
-    def _maintainSort(self):
-        previousSort = self.GetSortState()
-        if previousSort == (-1, 0): #Hasn't been sorted yet
-            previousSort = (self.COL_SIZE, False)
-
-        yield
-        self.SortListItems(*previousSort)
-
     def setNumberFormatter(self, formatter):
         self._numberFormatter = formatter
 
@@ -95,21 +85,25 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
         self.SetItemWindow(pos, col=self.COL_GRAPH, wnd=gauge, expand=True)
 
     def updateSymbols(self, updateDoneCallback, symbols):
-        with self._maintainSort():
+        previousSort = self.GetSortState()
+        if previousSort == (-1, 0): #Hasn't been sorted yet
+            previousSort = (self.COL_SIZE, False)
 
-            #workaround for bug in certain versions of UltimateListCtrl when calling DeleteAllItems()
-            for item in self._mainWin._itemWithWindow[:]:
-                if item.GetWindow():
-                    self._mainWin.DeleteItemWindow(item)
-            #end of workaround
+        #workaround for bug in certain versions of UltimateListCtrl when calling DeleteAllItems()
+        for item in self._mainWin._itemWithWindow[:]:
+            if item.GetWindow():
+                self._mainWin.DeleteItemWindow(item)
+        #end of workaround
 
-            self.itemDataMap = {}
-            self.DeleteAllItems()
+        self.itemDataMap = {}
+        self.DeleteAllItems()
 
-            if symbols:
-                largest = max([obj.size for obj in symbols])
-                for sym in symbols:
-                    self._addRow(sym, largest)
+        if symbols:
+            largest = max([obj.size for obj in symbols])
+            for sym in symbols:
+                self._addRow(sym, largest)
+
+        self.SortListItems(*previousSort)
         updateDoneCallback()
 
     #Required by listmix.ColumnSorterMixin
@@ -123,8 +117,8 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
     def GetSecondarySortValues(self, col, key1, key2):
         #If sorting by name or symbol type, secondary sort should always be by size, and descending
         if col == self.COL_NAME or col == self.COL_TYPE:
-            value1 = self.itemDataMap[key1][2]
-            value2 = self.itemDataMap[key2][2]
+            value1 = self.itemDataMap[key1][self.COL_SIZE]
+            value2 = self.itemDataMap[key2][self.COL_SIZE]
 
             _, dirn = self.GetSortState()
             if dirn:
@@ -132,7 +126,8 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
             else:
                 return (value1, value2)
         else:
-            return listmix.ColumnSorterMixin.GetSecondarySortValues(self, col, key1, key2)
+            # no secondary sort
+            return (0, 0)
 
     #this version contains the fix for including/not-including the width of the scrollbar
     def _doResize(self):
@@ -172,7 +167,7 @@ class SymbolListList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin, listm
         # Windows it is not included
         listWidth = self.GetClientSize().width
         if self.GetItemCount() > self.GetCountPerPage():
-            scrollWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+            scrollWidth = wx.SystemSettings.GetMetric(wx.SYS_VSCROLL_X)
             listWidth = listWidth - scrollWidth
 
         totColWidth = 0 # Width of all columns except last one.

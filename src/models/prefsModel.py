@@ -1,5 +1,5 @@
 
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 from guiHelpers import Event
 import os
 import os.path
@@ -41,7 +41,7 @@ class PrefsModel:
             "lastOpenedDirectory":	Preference("", PrefsHelpers.stringToPath),
             "watchFileForChanges":	Preference("true", PrefsHelpers.stringToBool),
             "showColorKey": 		Preference("true", PrefsHelpers.stringToBool),
-            }
+        }
 
         self.prefsChangedEvent = Event()
 
@@ -84,7 +84,7 @@ class PrefsModel:
             self.prefsChangedEvent(self._prefs)
 
         except Exception as e:
-            print e
+            print(e)
 
     def saveToFile(self, fileName):
         config = ConfigParser()

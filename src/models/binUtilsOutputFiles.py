@@ -2,7 +2,7 @@
 import subprocess
 import os.path
 
-import symbolTypes
+from . import symbolTypes
 
 
 class ParseError(Exception): pass
@@ -95,7 +95,7 @@ class ExternalToolGeneratedFile(object):
 
     def _runExternalTool(self):
         try:
-            output = subprocess.check_output(self._buildArgs(), stderr=subprocess.STDOUT)
+            output = subprocess.check_output(self._buildArgs(), stderr=subprocess.STDOUT, encoding='UTF-8')
         except subprocess.CalledProcessError as e:
             raise ParseError("Error calling '%s': %s"% (self._toolPath, e.output))
         return output

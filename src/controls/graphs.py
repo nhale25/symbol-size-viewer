@@ -68,67 +68,58 @@ class TotalGraph(StackedPyGaugeWithText):
         StackedPyGaugeWithText.__init__(self, barNames, *args, **kwargs)
 
         self.SetBarColors(dict((name, color) for name, color in self._categories))
-        self._total = None
         self._numberFormatter = lambda x: "%d"% x
         self._limit = None
+        self._values = []
 
-    def _generateText(self):
-        if not self._total:
+    def _getText(self):
+        if not self._values:
             return ""
 
-        totalSizeFormatted = self._numberFormatter(self._total)
-        if self._limit is None:
+        total = sum(self._values)
+        totalSizeFormatted = self._numberFormatter(total)
+        if not self._limit:
             return "%s%s bytes"% (self._label, totalSizeFormatted)
         else:
-            percent = (float(self._total) * 100) / self._limit
+            percent = (float(total) * 100) / self._limit
             limitSizeFormatted = self._numberFormatter(self._limit)
             return "%s%s of %s bytes (%d%%)"% (self._label, totalSizeFormatted, limitSizeFormatted, percent)
 
-    def _updateText(self):
-        text = self._generateText()
-        self.SetText(text)
-
-    def _updateColors(self):
-        if not self._total:
-            return
-
-        if self._total > self._limit and self._limit is not None:
-            self.SetBarColors(dict((name, self._overflowColor) for name, _ in self._categories))
-        else:
-            self.SetBarColors(dict((name, color) for name, color in self._categories))
-
     def setNumberFormatter(self, formatter):
         self._numberFormatter = formatter
-        self._updateText()
+        self.SetText(self._getText())
         self.Refresh()
 
     def setLimit(self, limit):
         self._limit = limit
-
-        if self._total > self._limit or self._limit is None:
-            self.SetRange(self._total if self._total else 1)
-        else:
-            self.SetRange(self._limit)
-
-        self._updateColors()
-        self._updateText()
-        self.Refresh()
-
+        self._redraw()
+    
     def setCategoryValues(self, *values):
-        if values is None:
-            self._total = None
-            self.SetValue(0)
+        self._values = values
+        self._redraw()
+    
+    def _redraw(self):
+        total = sum(self._values)
 
+        # maybe about to reduce the range, so ensure the value will always be
+        # less than the new range. Value will be updated again afterwards.
+        self.SetValue(0)
+
+        if not self._values:
+            self.SetRange(1)
+
+        elif self._limit and total > self._limit:
+            self.SetRange(total)
+            self.SetValue(total)
+            self.SetBarColors(dict((name, self._overflowColor) for name, _ in self._categories))
+        
         else:
-            self._total = sum(values)
-            if self._total > self._limit:
-                self.SetRange(self._total)
-
-            namedValues = dict((name, value) for (name, _), value in zip(self._categories, values))
+            self.SetRange(self._limit if self._limit else total)
+            namedValues = dict((name, value) for (name, _), value in zip(self._categories, self._values))
             self.SetValues(namedValues)
+            self.SetBarColors(dict((name, color) for name, color in self._categories))
 
-        self._updateColors()
-        self._updateText()
+        self.SetText(self._getText())
         self.Refresh()
 
 

@@ -1,5 +1,5 @@
 
-from binUtilsOutputFiles import NmOutputFile, SizeOutputFile
+from .binUtilsOutputFiles import NmOutputFile, SizeOutputFile
 
 
 class ObjectFile(object):
