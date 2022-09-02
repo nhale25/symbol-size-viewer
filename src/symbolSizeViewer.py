@@ -29,6 +29,7 @@ class SymbolSizeViewer(object):
 
         paths = wx.StandardPaths.Get()
         self._prefsFileLocation = os.path.join(paths.GetUserDataDir(), self.CONFIG_FILENAME)
+        print(f"Loading prefs from: {self._prefsFileLocation}")
 
         self._prefs = PrefsModel()
         self._prefs.prefsChangedEvent.addHandler(self._onPrefsModelChanged)
@@ -86,7 +87,6 @@ class SymbolSizeViewer(object):
 
         self._mainWindow.setTotalFlashSize(prefs["totalFlashSize"].get())
         self._mainWindow.setTotalMemorySize(prefs["totalMemorySize"].get())
-        self._mainWindow.showColorKey(prefs["showColorKey"].get())
         lastOpenedFile = prefs["lastOpenedFile"].get()
         if lastOpenedFile:
             self._mainWindow.setLastOpenedDirectory(os.path.dirname(lastOpenedFile))

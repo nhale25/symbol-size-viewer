@@ -58,8 +58,6 @@ class SymbolSizeViewerFrame(wx.Frame):
 
         viewMenu = wx.Menu()
         viewMenu.Append(wx.ID_ANY, "Number format", numberFormatMenu)
-        self.menuItem_showKey = viewMenu.Append(wx.ID_ANY, "Show colour key", kind=wx.ITEM_CHECK)
-        self.Bind(wx.EVT_MENU, lambda e: self.prefsChangedEvent({"showColorKey":self.menuItem_showKey.IsChecked()}), self.menuItem_showKey)
 
         menuBar.Append(viewMenu, "View")
 
@@ -127,7 +125,6 @@ class SymbolSizeViewerFrame(wx.Frame):
         panel.SetSizerAndFit(vBox)
         self.Fit()
         vBox.SetSizeHints(self)
-        
 
     def _onClose(self, event):
         self.Destroy()
@@ -204,11 +201,3 @@ class SymbolSizeViewerFrame(wx.Frame):
 
     def setLastOpenedDirectory(self, dir):
         self._lastOpenedDirectory = dir
-
-    def showColorKey(self, show):
-        if show:
-            self.colorKey.Show()
-        else:
-            self.colorKey.Hide()
-        self.menuItem_showKey.Check(show)
-        self.colorKey.GetParent().Layout()

@@ -40,7 +40,6 @@ class PrefsModel:
             "totalMemorySize": 		Preference(""),
             "lastOpenedFile":       Preference("", PrefsHelpers.stringToPath),
             "watchFileForChanges":	Preference("true", PrefsHelpers.stringToBool),
-            "showColorKey": 		Preference("true", PrefsHelpers.stringToBool),
             "reopenLastFile": 		Preference("true", PrefsHelpers.stringToBool),
         }
 
