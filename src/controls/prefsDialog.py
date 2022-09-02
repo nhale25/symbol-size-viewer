@@ -25,6 +25,10 @@ class PrefsDialog(SizedDialog):
             "Watch input file for changes:",
             wx.CheckBox)
 
+        self.chk_reopenLastFile = self._addControl(panel,
+            "Reopen last file at startup:",
+            wx.CheckBox)
+
         buttons = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
         self.SetButtonSizer(buttons)
 
@@ -32,6 +36,7 @@ class PrefsDialog(SizedDialog):
         self.txt_nmExeLoc.SetValue(prefs["nmExeLocation"].getAsString())
         self.txt_sizeExeLoc.SetValue(prefs["sizeExeLocation"].getAsString())
         self.chk_autoUpdate.SetValue(prefs["watchFileForChanges"].get())
+        self.chk_reopenLastFile.SetValue(prefs["reopenLastFile"].get())
 
         self.Fit()
 
@@ -47,5 +52,6 @@ class PrefsDialog(SizedDialog):
         return {
             "nmExeLocation": self.txt_nmExeLoc.GetValue(),
             "sizeExeLocation": self.txt_sizeExeLoc.GetValue(),
-            "watchFileForChanges": self.chk_autoUpdate.GetValue()
+            "watchFileForChanges": self.chk_autoUpdate.GetValue(),
+            "reopenLastFile": self.chk_reopenLastFile.GetValue(),
         }

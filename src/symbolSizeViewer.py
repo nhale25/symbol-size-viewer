@@ -45,13 +45,17 @@ class SymbolSizeViewer(object):
         self._prefs.loadFromFile(self._prefsFileLocation)
 
         if objectFileName is not None:
-            self._onOpenObjectFile(objectFileName)
+            self._onOpenObjectFile(os.path.abspath(objectFileName))
+        elif self._prefs["reopenLastFile"].get():
+            lastFile = self._prefs["lastOpenedFile"].get()
+            if lastFile:
+                self._onOpenObjectFile(os.path.abspath(lastFile))
 
         self._mainWindow.Show()
 
     def _onOpenObjectFile(self, path):
         self._fileWatcher.setFileToWatch(path)
-        self._prefs.set("lastOpenedDirectory", os.path.dirname(path))
+        self._prefs.set("lastOpenedFile", path)
         self._onObjectFileChanged(path, True)
 
     def _onObjectFileChanged(self, path, stillExists):
@@ -82,8 +86,10 @@ class SymbolSizeViewer(object):
 
         self._mainWindow.setTotalFlashSize(prefs["totalFlashSize"].get())
         self._mainWindow.setTotalMemorySize(prefs["totalMemorySize"].get())
-        self._mainWindow.setLastOpenedDirectory(prefs["lastOpenedDirectory"].get())
         self._mainWindow.showColorKey(prefs["showColorKey"].get())
+        lastOpenedFile = prefs["lastOpenedFile"].get()
+        if lastOpenedFile:
+            self._mainWindow.setLastOpenedDirectory(os.path.dirname(lastOpenedFile))
 
         if prefs["watchFileForChanges"].get():
             self._fileWatcher.startWatching()

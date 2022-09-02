@@ -38,9 +38,10 @@ class PrefsModel:
             "numberFormat": 		Preference("decimal"),
             "totalFlashSize": 		Preference(""),
             "totalMemorySize": 		Preference(""),
-            "lastOpenedDirectory":	Preference("", PrefsHelpers.stringToPath),
+            "lastOpenedFile":       Preference("", PrefsHelpers.stringToPath),
             "watchFileForChanges":	Preference("true", PrefsHelpers.stringToBool),
             "showColorKey": 		Preference("true", PrefsHelpers.stringToBool),
+            "reopenLastFile": 		Preference("true", PrefsHelpers.stringToBool),
         }
 
         self.prefsChangedEvent = Event()
