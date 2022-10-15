@@ -33,6 +33,7 @@ class SymbolSizeViewerFrame(wx.Frame):
         self.prefsChangedEvent = Event()
         self.openPrefsDialogEvent = Event()
         self.windowClosingEvent = Event()
+        self._lastOpenedDirectory = ""
 
         self._initUi()
 

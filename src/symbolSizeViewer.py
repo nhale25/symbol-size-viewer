@@ -71,8 +71,8 @@ class SymbolSizeViewer(object):
                 self._prefs["nmExeLocation"].get(),
                 path
             )
-        except ParseError as e:
-            self._mainWindow.setMessage(e.message)
+        except Exception as e:
+            self._mainWindow.setMessage(str(e))
         else:
             self._mainWindow.setMessage(None)
             self._mainWindow.updateObjectFile(objectFile)
