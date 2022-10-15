@@ -1,33 +1,43 @@
 
-from contextlib import contextmanager
+import os
+
 import wx
 from wx.lib.sized_controls import SizedDialog
-from guiHelpers import Event
 
 
 class PrefsDialog(SizedDialog):
     def __init__(self, prefs):
-        style = wx.DEFAULT_DIALOG_STYLE
+        style = wx.DEFAULT_DIALOG_STYLE | wx.CLOSE_BOX | wx.RESIZE_BORDER
         SizedDialog.__init__(self, None, title="Preferences", style=style)
 
         panel = self.GetContentsPane()
-        panel.SetSizerType("form")
+        panel.SetSizerType("grid", {"rows":4, "cols":3})
 
-        self.txt_nmExeLoc = self._addControl(panel,
-            "Location of nm executable:",
-            wx.TextCtrl, size=(200, -1))
+        label = wx.StaticText(panel, label="Location of nm executable:")
+        label.SetSizerProps(valign="center")
+        self.txt_nmExeLoc = wx.TextCtrl(panel, size=(200, -1))
+        self.txt_nmExeLoc.SetSizerProps(expand=True, valign="center")
+        self.btn_nmExeLoc = wx.Button(panel, id=wx.ID_OPEN)
+        self.btn_nmExeLoc.Bind(wx.EVT_BUTTON, self._onOpenNmExe)
 
-        self.txt_sizeExeLoc = self._addControl(panel,
-            "Location of size executable:",
-            wx.TextCtrl, size=(200, -1))
+        label = wx.StaticText(panel, label="Location of size executable:")
+        label.SetSizerProps(valign="center")
+        self.txt_sizeExeLoc = wx.TextCtrl(panel, size=(200, -1))
+        self.txt_sizeExeLoc.SetSizerProps(expand=True, valign="center")
+        self.btn_sizeExeLoc = wx.Button(panel, id=wx.ID_OPEN)
+        self.btn_sizeExeLoc.Bind(wx.EVT_BUTTON, self._onOpenSizeExe)
 
-        self.chk_autoUpdate = self._addControl(panel,
-            "Watch input file for changes:",
-            wx.CheckBox)
+        label = wx.StaticText(panel, label="Watch input file for changes:")
+        label.SetSizerProps(valign="center")
+        self.chk_autoUpdate = wx.CheckBox(panel)
+        self.chk_autoUpdate.SetSizerProps(expand=True, valign="center")
+        blank = wx.StaticText(panel, label="") #for spacing
 
-        self.chk_reopenLastFile = self._addControl(panel,
-            "Reopen last file at startup:",
-            wx.CheckBox)
+        label = wx.StaticText(panel, label="Reopen last file at startup:")
+        label.SetSizerProps(valign="center")
+        self.chk_reopenLastFile = wx.CheckBox(panel)
+        self.chk_reopenLastFile.SetSizerProps(expand=True, valign="center")
+        blank = wx.StaticText(panel, label="") #for spacing
 
         buttons = self.CreateSeparatedButtonSizer(wx.OK | wx.CANCEL)
         self.SetButtonSizer(buttons)
@@ -39,14 +49,24 @@ class PrefsDialog(SizedDialog):
         self.chk_reopenLastFile.SetValue(prefs["reopenLastFile"].get())
 
         self.Fit()
-
-    def _addControl(self, parent, caption, widgetType, *widgetArgs, **widgetKwargs):
-        label = wx.StaticText(parent, label=caption)
-        label.SetSizerProps(valign="center")
-
-        widget = widgetType(parent, *widgetArgs, **widgetKwargs)
-        widget.SetSizerProps(expand=True, valign="center")
-        return widget
+    
+    def _onOpenNmExe(self, event):
+        currentLoc = self.txt_nmExeLoc.GetValue()
+        currentDir, currentFile = os.path.split(currentLoc)
+        openFileDialog = wx.FileDialog(self, "Select 'nm' executable", currentDir, currentFile,
+                                       style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        if openFileDialog.ShowModal() == wx.ID_OK:
+            path = openFileDialog.GetPath()
+            self.txt_nmExeLoc.SetValue(path)
+    
+    def _onOpenSizeExe(self, event):
+        currentLoc = self.txt_sizeExeLoc.GetValue()
+        currentDir, currentFile = os.path.split(currentLoc)
+        openFileDialog = wx.FileDialog(self, "Select 'size' executable", currentDir, currentFile,
+                                       style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        if openFileDialog.ShowModal() == wx.ID_OK:
+            path = openFileDialog.GetPath()
+            self.txt_sizeExeLoc.SetValue(path)
 
     def getPreferences(self):
         return {
