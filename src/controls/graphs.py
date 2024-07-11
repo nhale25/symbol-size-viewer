@@ -46,11 +46,11 @@ class StackedPyGaugeWithText(PyGauge):
             dc.SetTextForeground(wx.BLACK)
             rect = self.GetClientRect()
             (textWidth, textHeight, descent, extraLeading) = dc.GetFullTextExtent(self._text)
-            textYPos = (rect.height-textHeight)/2
+            textYPos = (rect.height-textHeight)//2
 
             if textHeight > rect.height:
                 textYPos = 0-descent+extraLeading
-            textXPos = (rect.width-textWidth)/2
+            textXPos = (rect.width-textWidth)//2
             if textWidth>rect.width:
                 textXPos = 0
 
