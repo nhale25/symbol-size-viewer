@@ -59,9 +59,12 @@ class SymbolSizeViewer(object):
         self._mainWindow.Show()
 
     def _onOpenObjectFile(self, path):
-        self._fileWatcher.setFileToWatch(path)
-        self._prefs.set("lastOpenedFile", path)
-        self._onObjectFileChanged(path, True)
+        if os.path.isfile(path):
+            self._fileWatcher.setFileToWatch(path)
+            self._prefs.set("lastOpenedFile", path)
+            self._onObjectFileChanged(path, True)
+        else:
+            self._mainWindow.setMessage(path + " not found")
 
     def _onObjectFileChanged(self, path, stillExists):
         logger.info(f"loading object file: {path}")
