@@ -152,7 +152,7 @@ class NmOutputFile(ExternalToolGeneratedFile):
         self._symbols = self._parseOutput()
 
     def _buildArgs(self):
-        return [self._toolPath, "--size-sort", "--special-syms", self._filePath]
+        return [self._toolPath, "--demangle", "--size-sort", "--special-syms", self._filePath]
 
     def _parseOutput(self):
         output = self._runExternalTool()
