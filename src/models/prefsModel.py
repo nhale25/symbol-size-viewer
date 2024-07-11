@@ -4,6 +4,10 @@ from guiHelpers import Event
 import os
 import os.path
 import errno
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class PrefsHelpers:
 
@@ -84,7 +88,7 @@ class PrefsModel:
             self.prefsChangedEvent(self._prefs)
 
         except Exception as e:
-            print(e)
+            logger.warning(f"Failed reading config file: {e}")
 
     def saveToFile(self, fileName):
         config = ConfigParser()

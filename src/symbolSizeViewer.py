@@ -1,6 +1,8 @@
 
 import locale
 import os.path
+import logging
+
 import wx
 
 from controls.prefsDialog import PrefsDialog
@@ -11,6 +13,8 @@ from models.fileWatcher import FileWatcher
 from models.prefsModel import PrefsModel
 from models.binUtilsOutputFiles import ParseError
 from guiHelpers import Event, getRelativePath
+
+logger = logging.getLogger(__name__)
 
 
 class SymbolSizeViewer(object):
@@ -29,7 +33,7 @@ class SymbolSizeViewer(object):
 
         paths = wx.StandardPaths.Get()
         self._prefsFileLocation = os.path.join(paths.GetUserDataDir(), self.CONFIG_FILENAME)
-        print(f"Loading prefs from: {self._prefsFileLocation}")
+        logger.info(f"Loading prefs from: {self._prefsFileLocation}")
 
         self._prefs = PrefsModel()
         self._prefs.prefsChangedEvent.addHandler(self._onPrefsModelChanged)
@@ -60,6 +64,7 @@ class SymbolSizeViewer(object):
         self._onObjectFileChanged(path, True)
 
     def _onObjectFileChanged(self, path, stillExists):
+        logger.info(f"loading object file: {path}")
         if not stillExists:
             #Input file has been deleted, don't clear out the data, nobody wants that
             self._mainWindow.setMessage(path + " not found")
@@ -113,6 +118,8 @@ class SymbolSizeViewer(object):
 
 if __name__ == "__main__":
     import sys
+
+    logging.basicConfig(level=logging.INFO)
 
     if len(sys.argv) > 1:
         objectFile = sys.argv[1]
