@@ -12,8 +12,9 @@ class FileWatcher(object):
             self._absPath = os.path.abspath(path)
 
         def on_any_event(self, event):
-            if event.src_path == self._absPath or \
-                hasattr(event, "dest_path") and event.dest_path == self._absPath:
+            if (event.src_path == self._absPath or \
+                (hasattr(event, "dest_path") and event.dest_path == self._absPath)) \
+                    and event.event_type != "opened":
                     self._callback(self._path, os.path.isfile(self._absPath))
 
     def __init__(self, callback):
